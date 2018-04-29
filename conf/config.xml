@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+	<local_port>443</local_port>
+	<method>aes-256-cfb</method>
+	<password>889900</password>
+</config>

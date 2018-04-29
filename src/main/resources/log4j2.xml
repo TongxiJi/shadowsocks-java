@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--设置log4j2的自身log级别为warn -->
+<configuration status="warn">
+	<appenders>
+		<console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %5p %c{1} - %m%n" />
+		</console>
+
+		<RollingRandomAccessFile name="asynLogger"
+			fileName="./logs/ss-proxy.log" filePattern="./logs/ss-proxy-%d{yyyy-MM-dd}.log.%i">
+			<PatternLayout>
+				<Pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %L::: %-5p %C - %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1"
+					modulate="true" />
+				<SizeBasedTriggeringPolicy size="50MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="100" />
+		</RollingRandomAccessFile>
+
+	</appenders>
+
+	<loggers>
+		<AsyncLogger name="org.netty" level="info" additivity="false"
+			includeLocation="true">
+			<AppenderRef ref="asynLogger" />
+			<AppenderRef ref="Console" />
+		</AsyncLogger>
+		<AsyncRoot level="info" includeLocation="true">
+			<AppenderRef ref="asynLogger" />
+			<AppenderRef ref="Console" />
+		</AsyncRoot>
+	</loggers>
+
+</configuration>
