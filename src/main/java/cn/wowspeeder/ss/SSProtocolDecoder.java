@@ -36,8 +36,7 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 //        if (msg.readableBytes() == 0) {
 //            return;
 //        }
-        ByteBuf data = msg.readBytes(msg.readableBytes());
-        out.add(data);
+        out.add(msg.retain());
         //TODO test data
 //        InetSocketAddress recipient = ctx.channel().attr(SSCommon.CLIENT).get();
 //        ByteBuf testbuff = Unpooled.buffer();
