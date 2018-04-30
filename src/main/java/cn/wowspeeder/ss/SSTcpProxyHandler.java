@@ -2,11 +2,7 @@ package cn.wowspeeder.ss;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.DatagramPacket;
-import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -17,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static Logger logger = LoggerFactory.getLogger(SSTcpProxyHandler.class);
@@ -34,12 +29,12 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         this.clientChannel = clientCtx.channel();
 //        if (msg.readableBytes() == 0) return;
         InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
-        proxy(clientRecipient, clientCtx, msg.retain());
+        proxy(clientRecipient, clientCtx, msg);
     }
 
     private void proxy(InetSocketAddress clientRecipient, ChannelHandlerContext clientCtx, ByteBuf msg) {
         logger.debug("pc is null {},{}", (remoteChannel == null) , msg.readableBytes());
-
+        msg.retain();
         if (remoteChannel == null) {
             Bootstrap bootstrap = new Bootstrap();//
             bootstrap.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
@@ -49,14 +44,13 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 @Override
                                 protected void initChannel(Channel ch) throws Exception {
                                     ch.pipeline()
-//                                            .addLast("timeout", new IdleStateHandler(0, 0, 1, TimeUnit.MINUTES) {
-//                                                @Override
-//                                                protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
-//                                                    logger.debug("state:{}", state.toString());
-//                                                    ch.close();
-//                                                    return super.newIdleStateEvent(state, first);
-//                                                }
-//                                            })
+                                            .addLast("timeout", new IdleStateHandler(0, 0, 40, TimeUnit.MINUTES) {
+                                                @Override
+                                                protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
+                                                    proxyChannelClose();
+                                                    return super.newIdleStateEvent(state, first);
+                                                }
+                                            })
                                             .addLast("tcpProxy", new SimpleChannelInboundHandler<ByteBuf>() {
                                                 @Override
                                                 protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
@@ -73,12 +67,18 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                                 public void channelInactive(ChannelHandlerContext ctx) throws Exception {
                                                     super.channelInactive(ctx);
                                                     proxyChannelClose();
+                                                    if (msg.refCnt() != 0) {
+                                                        ReferenceCountUtil.release(msg);
+                                                    }
                                                 }
 
                                                 @Override
                                                 public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-//                                                    super.exceptionCaught(ctx,cause);
+                                                    super.exceptionCaught(ctx,cause);
                                                     proxyChannelClose();
+                                                    if (msg.refCnt() != 0) {
+                                                        ReferenceCountUtil.release(msg);
+                                                    }
                                                 }
                                             });
                                 }
@@ -91,11 +91,19 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             if (future.isSuccess()) {
                                 remoteChannel = future.channel();
                                 logger.debug("channel id {}, {}<->{}<->{} connect  {}",clientCtx.channel().id().toString(), "client", future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
+                            } else {
+                                proxyChannelClose();
+                                if (msg.refCnt() != 0) {
+                                    ReferenceCountUtil.release(msg);
+                                }
                             }
                         });
             } catch (Exception e) {
                 logger.error("connect internet error", e);
                 proxyChannelClose();
+                if (msg.refCnt() != 0) {
+                    ReferenceCountUtil.release(msg);
+                }
             }
         } else {
             logger.debug("write direct {}",msg.readableBytes());
