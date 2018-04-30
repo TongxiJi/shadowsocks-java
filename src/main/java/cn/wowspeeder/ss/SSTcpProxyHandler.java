@@ -18,6 +18,8 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static Logger logger = LoggerFactory.getLogger(SSTcpProxyHandler.class);
     private Channel clientChannel;
     private Channel remoteChannel;
+    private boolean httpClientCreated;
+    private ByteBuf  clientBuff;
 
     public SSTcpProxyHandler() {
     }
@@ -25,8 +27,10 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext clientCtx, ByteBuf msg) throws Exception {
-//        logger.debug("readableBytes:" + msg.readableBytes());
-        this.clientChannel = clientCtx.channel();
+        logger.debug("readableBytes:" + msg.readableBytes());
+        if (this.clientChannel == null) {
+            this.clientChannel = clientCtx.channel();
+        }
 //        if (msg.readableBytes() == 0) return;
         InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
         proxy(clientRecipient, clientCtx, msg);
@@ -35,7 +39,19 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private void proxy(InetSocketAddress clientRecipient, ChannelHandlerContext clientCtx, ByteBuf msg) {
         logger.debug("pc is null {},{}", (remoteChannel == null) , msg.readableBytes());
         msg.retain();
+
         if (remoteChannel == null) {
+            if (clientBuff  == null) {
+                clientBuff = msg;
+            } else {
+                clientBuff.writeBytes(msg);
+                msg.release();
+            }
+
+            if (httpClientCreated) {
+                return;
+            }
+            httpClientCreated = true;
             Bootstrap bootstrap = new Bootstrap();//
             bootstrap.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000).option(ChannelOption.SO_KEEPALIVE, true)
@@ -44,9 +60,10 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 @Override
                                 protected void initChannel(Channel ch) throws Exception {
                                     ch.pipeline()
-                                            .addLast("timeout", new IdleStateHandler(0, 0, 40, TimeUnit.MINUTES) {
+                                            .addLast("timeout", new IdleStateHandler(0, 0, 1, TimeUnit.MINUTES) {
                                                 @Override
                                                 protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
+                                                    logger.info("{} state:{}", clientRecipient.toString(), state.toString());
                                                     proxyChannelClose();
                                                     return super.newIdleStateEvent(state, first);
                                                 }
@@ -60,21 +77,18 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                                 @Override
                                                 public void channelActive(ChannelHandlerContext ctx) throws Exception {
 //                                                    logger.debug("channelActive {}",msg.readableBytes());
-                                                    ctx.writeAndFlush(msg);
+                                                    ctx.writeAndFlush(clientBuff);
                                                 }
 
                                                 @Override
                                                 public void channelInactive(ChannelHandlerContext ctx) throws Exception {
                                                     super.channelInactive(ctx);
                                                     proxyChannelClose();
-                                                    if (msg.refCnt() != 0) {
-                                                        ReferenceCountUtil.release(msg);
-                                                    }
                                                 }
 
                                                 @Override
                                                 public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                                                    super.exceptionCaught(ctx,cause);
+                                                    super.exceptionCaught(ctx, cause);
                                                     proxyChannelClose();
                                                     if (msg.refCnt() != 0) {
                                                         ReferenceCountUtil.release(msg);
@@ -90,23 +104,18 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         .addListener((ChannelFutureListener) future -> {
                             if (future.isSuccess()) {
                                 remoteChannel = future.channel();
-                                logger.debug("channel id {}, {}<->{}<->{} connect  {}",clientCtx.channel().id().toString(), "client", future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
+                                logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), "client", future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                             } else {
                                 proxyChannelClose();
-                                if (msg.refCnt() != 0) {
-                                    ReferenceCountUtil.release(msg);
-                                }
+                                logger.error("channel id {}, ->{} connect  {}", clientCtx.channel().id().toString(), "client", clientRecipient.toString(), future.isSuccess());
                             }
                         });
             } catch (Exception e) {
                 logger.error("connect internet error", e);
                 proxyChannelClose();
-                if (msg.refCnt() != 0) {
-                    ReferenceCountUtil.release(msg);
-                }
             }
         } else {
-            logger.debug("write direct {}",msg.readableBytes());
+            logger.debug("write direct {}", msg.readableBytes());
             remoteChannel.writeAndFlush(msg);
         }
     }
