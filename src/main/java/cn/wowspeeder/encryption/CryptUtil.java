@@ -18,13 +18,16 @@ public class CryptUtil {
 		try {
 			_remoteOutStream = new ByteArrayOutputStream();
 			ByteBuf bytebuff = (ByteBuf) msg;
-//			if (!bytebuff.hasArray()) {
+			if (!bytebuff.hasArray()) {
 				int len = bytebuff.readableBytes();
 				byte[] arr = new byte[len];
 				bytebuff.getBytes(0, arr);
 				crypt.encrypt(arr, arr.length, _remoteOutStream);
 				data = _remoteOutStream.toByteArray();
-//			}
+			} else {
+				crypt.decrypt(bytebuff.array(), bytebuff.readableBytes(), _remoteOutStream);
+				data = _remoteOutStream.toByteArray();
+			}
 		} catch (Exception e) {
 			logger.error("encrypt error", e);
 		} finally {
@@ -44,13 +47,16 @@ public class CryptUtil {
 		try {
 			_localOutStream = new ByteArrayOutputStream();
 			ByteBuf bytebuff = (ByteBuf) msg;
-//			if (!bytebuff.hasArray()) {
+			if (!bytebuff.hasArray()) {
 				int len = bytebuff.readableBytes();
 				byte[] arr = new byte[len];
 				bytebuff.getBytes(0, arr);
 				crypt.decrypt(arr, arr.length, _localOutStream);
 				data = _localOutStream.toByteArray();
-//			}
+			} else {
+				crypt.decrypt(bytebuff.array(), bytebuff.readableBytes(), _localOutStream);
+				data = _localOutStream.toByteArray();
+			}
 		} catch (Exception e) {
 			logger.error("encrypt error", e);
 		} finally {

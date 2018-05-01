@@ -60,10 +60,10 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 @Override
                                 protected void initChannel(Channel ch) throws Exception {
                                     ch.pipeline()
-                                            .addLast("timeout", new IdleStateHandler(0, 0, 1, TimeUnit.MINUTES) {
+                                            .addLast("timeout", new IdleStateHandler(0, 0, 30, TimeUnit.MINUTES) {
                                                 @Override
                                                 protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
-                                                    logger.info("{} state:{}", clientRecipient.toString(), state.toString());
+                                                    logger.debug("{} state:{}", clientRecipient.toString(), state.toString());
                                                     proxyChannelClose();
                                                     return super.newIdleStateEvent(state, first);
                                                 }
@@ -88,11 +88,8 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                                                 @Override
                                                 public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                                                    super.exceptionCaught(ctx, cause);
+//                                                    super.exceptionCaught(ctx, cause);
                                                     proxyChannelClose();
-                                                    if (msg.refCnt() != 0) {
-                                                        ReferenceCountUtil.release(msg);
-                                                    }
                                                 }
                                             });
                                 }
@@ -134,6 +131,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     private void proxyChannelClose() {
+//        logger.info("proxyChannelClose");
         try {
             if (remoteChannel != null) {
                 remoteChannel.close();
