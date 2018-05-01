@@ -18,8 +18,8 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static Logger logger = LoggerFactory.getLogger(SSTcpProxyHandler.class);
     private Channel clientChannel;
     private Channel remoteChannel;
-    private boolean httpClientCreated;
-    private ByteBuf  clientBuff;
+    private Bootstrap proxyClient;
+    private ByteBuf clientBuff;
 
     public SSTcpProxyHandler() {
     }
@@ -32,28 +32,29 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             this.clientChannel = clientCtx.channel();
         }
 //        if (msg.readableBytes() == 0) return;
-        InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
-        proxy(clientRecipient, clientCtx, msg);
+        proxy(clientCtx, msg);
     }
 
-    private void proxy(InetSocketAddress clientRecipient, ChannelHandlerContext clientCtx, ByteBuf msg) {
-        logger.debug("pc is null {},{}", (remoteChannel == null) , msg.readableBytes());
+    private void proxy(ChannelHandlerContext clientCtx, ByteBuf msg) {
+        logger.debug("pc is null {},{}", (remoteChannel == null), msg.readableBytes());
         msg.retain();
 
         if (remoteChannel == null) {
-            if (clientBuff  == null) {
+            if (clientBuff == null) {
                 clientBuff = msg;
             } else {
                 clientBuff.writeBytes(msg);
                 msg.release();
             }
 
-            if (httpClientCreated) {
+            if (proxyClient != null) {
                 return;
             }
-            httpClientCreated = true;
-            Bootstrap bootstrap = new Bootstrap();//
-            bootstrap.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
+
+            InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
+
+            proxyClient = new Bootstrap();//
+            proxyClient.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000).option(ChannelOption.SO_KEEPALIVE, true)
                     .handler(
                             new ChannelInitializer<Channel>() {
@@ -96,7 +97,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             }
                     );
             try {
-                 bootstrap
+                proxyClient
                         .connect(clientRecipient)
                         .addListener((ChannelFutureListener) future -> {
                             if (future.isSuccess()) {

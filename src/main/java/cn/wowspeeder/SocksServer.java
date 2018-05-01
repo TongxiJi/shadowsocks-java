@@ -48,7 +48,6 @@ public class SocksServer {
             //tcp server
             tcpBootstrap = new ServerBootstrap();
             tcpBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-                    .option(ChannelOption.SO_KEEPALIVE, true)
                     .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
                         protected void initChannel(NioSocketChannel ctx) throws Exception {
