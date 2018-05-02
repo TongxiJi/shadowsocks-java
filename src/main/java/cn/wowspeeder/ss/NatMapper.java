@@ -7,8 +7,8 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NatMapper {
     private static final InternalLogger log;
@@ -17,8 +17,8 @@ public class NatMapper {
         log = InternalLoggerFactory.getInstance(NatMapper.class);
     }
 
-    private static Map<InetSocketAddress, Channel> udpTable = new HashMap<>() ;
-    private static Map<InetSocketAddress, Channel> tcpTable = new HashMap<>();
+    private static Map<InetSocketAddress, Channel> udpTable = new ConcurrentHashMap<>();
+    private static Map<InetSocketAddress, Channel> tcpTable = new ConcurrentHashMap<>();
 
     static void putTcpChannel(InetSocketAddress udpTarget, Channel tcpChannel) {
         tcpTable.put(udpTarget, tcpChannel);
@@ -27,7 +27,6 @@ public class NatMapper {
     static void putUdpChannel(InetSocketAddress udpTarget, Channel udpChannel) {
         udpTable.put(udpTarget, udpChannel);
     }
-
 
 
     static Channel getTcpChannel(InetSocketAddress udpTarget) {
