@@ -7,6 +7,9 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class SocksServer {
 
@@ -48,11 +52,21 @@ public class SocksServer {
             //tcp server
             tcpBootstrap = new ServerBootstrap();
             tcpBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+                    .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
+                    .option(ChannelOption.SO_SNDBUF, 32 * 1024)// 写缓冲区为32k
                     .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
                         protected void initChannel(NioSocketChannel ctx) throws Exception {
 //                            ctx.pipeline().addLast(new SSTcpHandler(config));
                             ctx.pipeline()
+                                    //timeout
+                                    .addLast("timeout", new IdleStateHandler(0, 0, 2, TimeUnit.MINUTES) {
+                                        @Override
+                                        protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
+                                            ctx.close();
+                                            return super.newIdleStateEvent(state, first);
+                                        }
+                                    })
                                     // in
                                     .addLast("ssCheckerReceive", new SSCheckerReceive(config.get_method(), config.get_password()))
                                     .addLast("ssCipherDecoder", new SSCipherDecoder())
@@ -74,19 +88,13 @@ public class SocksServer {
             udpBootstrap = new Bootstrap();
             udpBootstrap.group(bossGroup).channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST, true)// 支持广播
-                    .option(ChannelOption.SO_RCVBUF, 64 * 1024)// 设置UDP读缓冲区为1M
-                    .option(ChannelOption.SO_SNDBUF, 64 * 1024)// 设置UDP写缓冲区为1M
+                    .option(ChannelOption.SO_RCVBUF, 64 * 1024)// 设置UDP读缓冲区为64k
+                    .option(ChannelOption.SO_SNDBUF, 64 * 1024)// 设置UDP写缓冲区为64k
                     .handler(new ChannelInitializer<NioDatagramChannel>() {
 
                         @Override
                         protected void initChannel(NioDatagramChannel ctx) throws Exception {
                             ctx.pipeline()
-//                                    .addLast("ssCheck", new SimpleChannelInboundHandler<Object>() {
-//                                        @Override
-//                                        protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-//                                            logger.info(msg.getClass().getSimpleName());
-//                                        }
-//                                    })
                                     // in
                                     .addLast("ssCheckerReceive", new SSCheckerReceive(config.get_method(), config.get_password()))
                                     .addLast("ssCipherDecoder", new SSCipherDecoder())
