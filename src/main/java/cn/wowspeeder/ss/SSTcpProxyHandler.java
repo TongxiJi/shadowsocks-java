@@ -101,11 +101,11 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         .connect(clientRecipient)
                         .addListener((ChannelFutureListener) future -> {
                             if (future.isSuccess()) {
+                                logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                 remoteChannel = future.channel();
-                                logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), "client", future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                             } else {
+                                logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(),future.cause());
                                 proxyChannelClose();
-                                logger.error("channel id {}, ->{} connect  {}", clientCtx.channel().id().toString(), "client", clientRecipient.toString(), future.isSuccess());
                             }
                         });
             } catch (Exception e) {
