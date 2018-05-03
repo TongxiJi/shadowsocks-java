@@ -37,6 +37,8 @@ public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             Bootstrap bootstrap = new Bootstrap();
             EventLoopGroup bossGroup = new NioEventLoopGroup(1);
             bootstrap.group(bossGroup).channel(NioDatagramChannel.class)
+                    .option(ChannelOption.SO_RCVBUF, 64 * 1024)// 设置UDP读缓冲区为64k
+                    .option(ChannelOption.SO_SNDBUF, 64 * 1024)// 设置UDP写缓冲区为64k
                     .handler(new ChannelInitializer<Channel>() {
                         @Override
                         protected void initChannel(Channel ch) throws Exception {
