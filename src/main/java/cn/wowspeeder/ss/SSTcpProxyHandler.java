@@ -3,6 +3,7 @@ package cn.wowspeeder.ss;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -16,6 +17,9 @@ import java.util.concurrent.TimeUnit;
 
 public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static Logger logger = LoggerFactory.getLogger(SSTcpProxyHandler.class);
+
+    private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
+
     private Channel clientChannel;
     private Channel remoteChannel;
     private Bootstrap proxyClient;
@@ -54,10 +58,11 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
 
             proxyClient = new Bootstrap();//
-            proxyClient.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
+            proxyClient.group(proxyBossGroup).channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000)
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
+                    .option(ChannelOption.TCP_NODELAY, true)
                     .handler(
                             new ChannelInitializer<Channel>() {
                                 @Override
@@ -106,7 +111,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                 remoteChannel = future.channel();
                             } else {
-                                logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(),future.cause());
+                                logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
                                 proxyChannelClose();
                             }
                         });

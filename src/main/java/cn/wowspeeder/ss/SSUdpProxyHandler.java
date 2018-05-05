@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static Logger logger = LoggerFactory.getLogger(SSUdpProxyHandler.class);
-
+    private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
 
     public SSUdpProxyHandler() {
 
@@ -35,8 +35,7 @@ public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel pc = NatMapper.getUdpChannel(clientSender);
         if (pc == null) {
             Bootstrap bootstrap = new Bootstrap();
-            EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-            bootstrap.group(bossGroup).channel(NioDatagramChannel.class)
+            bootstrap.group(proxyBossGroup).channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_RCVBUF, 64 * 1024)// 设置UDP读缓冲区为64k
                     .option(ChannelOption.SO_SNDBUF, 64 * 1024)// 设置UDP写缓冲区为64k
                     .handler(new ChannelInitializer<Channel>() {
@@ -68,7 +67,7 @@ public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             @Override
                             public void operationComplete(ChannelFuture future) throws Exception {
                                 if (future.isSuccess()) {
-                                    logger.debug("channel id {}, {}<->{}<->{} connect  {}",clientCtx.channel().id().toString(), clientSender.toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
+                                    logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientSender.toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                     NatMapper.putUdpChannel(clientSender, future.channel());
                                 }
                             }
