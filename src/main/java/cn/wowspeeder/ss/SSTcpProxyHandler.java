@@ -59,7 +59,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
             proxyClient = new Bootstrap();//
             proxyClient.group(proxyBossGroup).channel(NioSocketChannel.class)
-                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000)
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 20 * 1000)
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
                     .option(ChannelOption.TCP_NODELAY, true)

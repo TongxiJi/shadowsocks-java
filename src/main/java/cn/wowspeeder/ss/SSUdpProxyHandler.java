@@ -42,7 +42,7 @@ public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         @Override
                         protected void initChannel(Channel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast("timeout", new IdleStateHandler(0, 0, 1, TimeUnit.MINUTES) {
+                                    .addLast("timeout", new IdleStateHandler(0, 0, 2, TimeUnit.MINUTES) {
                                         @Override
                                         protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
 //                                            logger.debug("{} state:{}", clientSender.toString(), state.toString());
