@@ -1,8 +1,12 @@
 基于netty4实现的shadowsocks服务器端
 ====
 
-Features:
+特性:
 - TCP & UDP full support
+
+## 安装
+### 环境要求
+* JRE8
 
 使用
 ---
