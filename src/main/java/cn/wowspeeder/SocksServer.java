@@ -52,7 +52,9 @@ public class SocksServer {
             //tcp server
             tcpBootstrap = new ServerBootstrap();
             tcpBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+                    .option(ChannelOption.SO_BACKLOG,5120)
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
+                    .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.SO_LINGER, 1) //关闭时等待1s发送关闭
                     .childHandler(new ChannelInitializer<NioSocketChannel>() {
