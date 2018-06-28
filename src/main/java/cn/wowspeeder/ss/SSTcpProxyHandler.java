@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
@@ -23,7 +25,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private Channel clientChannel;
     private Channel remoteChannel;
     private Bootstrap proxyClient;
-    private ByteBuf clientBuff;
+    private List<ByteBuf> clientBuffs;
 
     public SSTcpProxyHandler() {
     }
@@ -31,7 +33,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext clientCtx, ByteBuf msg) throws Exception {
-        logger.debug("readableBytes:" + msg.readableBytes());
+        logger.debug("channel id {},readableBytes:{}", clientCtx.channel().id().toString(), msg.readableBytes());
         if (this.clientChannel == null) {
             this.clientChannel = clientCtx.channel();
         }
@@ -40,24 +42,12 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     private void proxy(ChannelHandlerContext clientCtx, ByteBuf msg) {
-        logger.debug("pc is null {},{}", (remoteChannel == null), msg.readableBytes());
-        msg.retain();
-
-        if (remoteChannel == null) {
-            if (clientBuff == null) {
-                clientBuff = msg;
-            } else {
-                clientBuff.writeBytes(msg);
-                msg.release();
-            }
-
-            if (proxyClient != null) {
-                return;
-            }
+        logger.debug("channel id {},pc is null {},{}", clientCtx.channel().id().toString(), (remoteChannel == null), msg.readableBytes());
+        if (remoteChannel == null && proxyClient == null) {
+            proxyClient = new Bootstrap();//
 
             InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
 
-            proxyClient = new Bootstrap();//
             proxyClient.group(proxyBossGroup).channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 20 * 1000)
                     .option(ChannelOption.SO_KEEPALIVE, true)
@@ -85,7 +75,6 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                                 @Override
                                                 public void channelActive(ChannelHandlerContext ctx) throws Exception {
 //                                                    logger.debug("channelActive {}",msg.readableBytes());
-                                                    ctx.writeAndFlush(clientBuff);
                                                 }
 
                                                 @Override
@@ -110,6 +99,10 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             if (future.isSuccess()) {
                                 logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                 remoteChannel = future.channel();
+                                if (clientBuffs != null) {
+                                    clientBuffs.forEach(clientBuff -> remoteChannel.writeAndFlush(clientBuff));
+                                    clientBuffs = null;
+                                }
                             } else {
                                 logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
                                 proxyChannelClose();
@@ -118,10 +111,20 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             } catch (Exception e) {
                 logger.error("connect internet error", e);
                 proxyChannelClose();
+                return;
             }
+        }
+
+
+        if (remoteChannel == null) {
+            if (clientBuffs == null) {
+                clientBuffs = new ArrayList<>();
+            }
+            clientBuffs.add(msg.retain());
+            logger.debug("channel id {},add to client buff list", clientCtx.channel().id().toString());
         } else {
-            logger.debug("write direct {}", msg.readableBytes());
-            remoteChannel.writeAndFlush(msg);
+            remoteChannel.writeAndFlush(msg.retain());
+            logger.debug("channel id {},remote channel write {}", clientCtx.channel().id().toString(), msg.readableBytes());
         }
     }
 
@@ -141,6 +144,10 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private void proxyChannelClose() {
 //        logger.info("proxyChannelClose");
         try {
+            if (clientBuffs != null) {
+                clientBuffs.forEach(ReferenceCountUtil::release);
+                clientBuffs = null;
+            }
             if (remoteChannel != null) {
                 remoteChannel.close();
                 remoteChannel = null;
