@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
 
 public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
@@ -100,7 +101,10 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                 remoteChannel = future.channel();
                                 if (clientBuffs != null) {
-                                    clientBuffs.forEach(clientBuff -> remoteChannel.writeAndFlush(clientBuff));
+                                    ListIterator<ByteBuf> bufsIterator = clientBuffs.listIterator();
+                                    while (bufsIterator.hasNext()) {
+                                        remoteChannel.writeAndFlush(bufsIterator.next());
+                                    }
                                     clientBuffs = null;
                                 }
                             } else {
