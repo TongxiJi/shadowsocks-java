@@ -127,7 +127,11 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             clientBuffs.add(msg.retain());
             logger.debug("channel id {},add to client buff list", clientCtx.channel().id().toString());
         } else {
-            remoteChannel.writeAndFlush(msg.retain());
+            if (clientBuffs == null) {
+                remoteChannel.writeAndFlush(msg.retain());
+            } else {
+                clientBuffs.add(msg.retain());
+            }
             logger.debug("channel id {},remote channel write {}", clientCtx.channel().id().toString(), msg.readableBytes());
         }
     }

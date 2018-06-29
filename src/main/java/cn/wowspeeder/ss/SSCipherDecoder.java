@@ -18,6 +18,9 @@ public class SSCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> list) throws Exception {
         ICrypt _crypt = ctx.channel().attr(SSCommon.CIPHER).get();
         byte[] data = CryptUtil.decrypt(_crypt, msg);
+        if (data == null) {
+            ctx.channel().close();
+        }
         list.add(msg.retain().clear().writeBytes(data));//
     }
 }

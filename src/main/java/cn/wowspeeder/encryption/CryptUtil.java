@@ -48,7 +48,7 @@ public class CryptUtil {
             crypt.decrypt(arr, arr.length, _localOutStream);
             data = _localOutStream.toByteArray();
         } catch (Exception e) {
-            logger.error("encrypt error", e);
+            logger.error("decrypt error", e);
         } finally {
             if (_localOutStream != null) {
                 try {

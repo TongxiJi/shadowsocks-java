@@ -41,6 +41,7 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
             SSAddrRequest addrRequest = SSAddrRequest.getAddrRequest(msg);
             if (addrRequest == null) {
                 logger.error("failed to get address request from {}", ctx.channel().attr(SSCommon.CLIENT).get().getHostString());
+                ctx.channel().close();
                 return;
             }
             logger.debug(ctx.channel().id().toString() + " addressType = " + addrRequest.addressType() + ",host = " + addrRequest.host() + ",port = " + addrRequest.port() + ",dataBuff = "
