@@ -98,14 +98,18 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         .connect(clientRecipient)
                         .addListener((ChannelFutureListener) future -> {
                             if (future.isSuccess()) {
-                                logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
-                                remoteChannel = future.channel();
-                                if (clientBuffs != null) {
-                                    ListIterator<ByteBuf> bufsIterator = clientBuffs.listIterator();
-                                    while (bufsIterator.hasNext()) {
-                                        remoteChannel.writeAndFlush(bufsIterator.next());
+                                try {
+                                    logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
+                                    remoteChannel = future.channel();
+                                    if (clientBuffs != null) {
+                                        ListIterator<ByteBuf> bufsIterator = clientBuffs.listIterator();
+                                        while (bufsIterator.hasNext()) {
+                                            remoteChannel.writeAndFlush(bufsIterator.next());
+                                        }
+                                        clientBuffs = null;
                                     }
-                                    clientBuffs = null;
+                                } catch (Exception e) {
+                                    proxyChannelClose();
                                 }
                             } else {
                                 logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
