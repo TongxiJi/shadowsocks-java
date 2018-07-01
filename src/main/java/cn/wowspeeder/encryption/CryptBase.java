@@ -45,9 +45,9 @@ public abstract class CryptBase implements ICrypt {
 		}
 
 		if (isEncrypt) {
-			_encryptIV = new byte[_ivLength];
-			System.arraycopy(iv, 0, _encryptIV, 0, _ivLength);
 			try {
+				_encryptIV = new byte[_ivLength];
+				System.arraycopy(iv, 0, _encryptIV, 0, _ivLength);
 				encCipher = getCipher(isEncrypt);
 				ParametersWithIV parameterIV = new ParametersWithIV(
 						new KeyParameter(_key.getEncoded()), _encryptIV);
@@ -56,9 +56,9 @@ public abstract class CryptBase implements ICrypt {
 				logger.info(e.toString());
 			}
 		} else {
-			_decryptIV = new byte[_ivLength];
-			System.arraycopy(iv, 0, _decryptIV, 0, _ivLength);
 			try {
+				_decryptIV = new byte[_ivLength];
+				System.arraycopy(iv, 0, _decryptIV, 0, _ivLength);
 				decCipher = getCipher(isEncrypt);
 				ParametersWithIV parameterIV = new ParametersWithIV(
 						new KeyParameter(_key.getEncoded()), _decryptIV);

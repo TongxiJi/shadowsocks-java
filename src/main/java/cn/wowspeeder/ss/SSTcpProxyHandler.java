@@ -97,8 +97,8 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 proxyClient
                         .connect(clientRecipient)
                         .addListener((ChannelFutureListener) future -> {
-                            if (future.isSuccess()) {
-                                try {
+                            try {
+                                if (future.isSuccess()) {
                                     logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                     remoteChannel = future.channel();
                                     if (clientBuffs != null) {
@@ -108,11 +108,11 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                         }
                                         clientBuffs = null;
                                     }
-                                } catch (Exception e) {
+                                } else {
+                                    logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
                                     proxyChannelClose();
                                 }
-                            } else {
-                                logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
+                            } catch (Exception e) {
                                 proxyChannelClose();
                             }
                         });
@@ -169,7 +169,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 clientChannel = null;
             }
         } catch (Exception e) {
-            logger.error("close channel error", e);
+//            logger.error("close channel error", e);
         }
     }
 }

@@ -19,7 +19,9 @@ public class SSCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
         ICrypt _crypt = ctx.channel().attr(SSCommon.CIPHER).get();
         byte[] data = CryptUtil.decrypt(_crypt, msg);
         if (data == null) {
-            ctx.close();
+            if (!ctx.channel().attr(SSCommon.IS_UDP).get()) {
+                ctx.close();
+            }
             return;
         }
         list.add(msg.retain().clear().writeBytes(data));//
