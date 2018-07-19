@@ -61,4 +61,11 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 //        testbuff.writeBytes(new byte[]{0x01, 0x02});
 //        ctx.channel().writeAndFlush(new DatagramPacket(testbuff, recipient));
     }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        InetSocketAddress clientSender = ctx.channel().attr(SSCommon.CLIENT).get();
+        logger.error("client {},error :{}", clientSender.toString(), cause.getMessage());
+//        super.exceptionCaught(ctx, cause);
+    }
 }
