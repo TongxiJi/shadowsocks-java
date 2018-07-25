@@ -98,7 +98,7 @@ public class SSServer {
                     protected void initChannel(NioDatagramChannel ctx) throws Exception {
                         ctx.pipeline()
                                 // in
-                                .addLast("ssCheckerReceive", new SSCheckerReceive(method, password))
+                                .addLast("ssCheckerReceive", new SSCheckerReceive(method, password, true))
                                 .addLast("ssCipherDecoder", new SSCipherDecoder())
                                 .addLast("ssProtocolDecoder", new SSProtocolDecoder())
                                 //proxy
@@ -112,7 +112,7 @@ public class SSServer {
                 })
         ;
         udpBootstrap.bind(server, port).sync();
-        logger.info("listen at {}:{}",server,port);
+        logger.info("listen at {}:{}", server, port);
     }
 
     public void stop() {

@@ -11,18 +11,28 @@ import org.slf4j.LoggerFactory;
 public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
     private static Logger logger = LoggerFactory.getLogger(SSCheckerReceive.class);
 
-    private final String method;
-    private final String password;
+    private String method;
+    private String password;
+    private boolean isForUDP = false;
 
     public SSCheckerReceive(String method, String password) {
+        this(method, password, false);
+    }
+
+    public SSCheckerReceive(String method, String password, boolean isForUDP) {
         super(false);
         this.method = method;
         this.password = password;
+        this.isForUDP = isForUDP;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
+        ICrypt _crypt = CryptFactory.get(this.method, this.password);
+        assert _crypt != null;
+        _crypt.ivSetIgnore(isForUDP);
+        ctx.channel().attr(SSCommon.CIPHER).set(_crypt);
     }
 
     @Override
@@ -39,11 +49,6 @@ public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
         }
 
 //        logger.debug("channelRead0 isUdp:"+isUdp);
-        ICrypt _crypt = ctx.channel().attr(SSCommon.CIPHER).get();
-        if (_crypt == null || isUdp) {
-            _crypt = CryptFactory.get(this.method, this.password);
-            ctx.channel().attr(SSCommon.CIPHER).set(_crypt);
-        }
         ctx.channel().attr(SSCommon.IS_UDP).set(isUdp);
 
         if (isUdp) {
