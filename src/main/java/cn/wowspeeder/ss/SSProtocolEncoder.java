@@ -23,10 +23,10 @@ public class SSProtocolEncoder extends MessageToMessageEncoder<ByteBuf> {
         //组装ss协议
         //udp [target address][payload]
         //tcp only [payload]
-        ByteBuf sendBuff = Unpooled.buffer(32 * 1024);
         boolean isUdp = ctx.channel().attr(SSCommon.IS_UDP).get();
         if (isUdp) {
-            SSAddrRequest ssAddr = null;
+            ByteBuf addrBuff = Unpooled.buffer(128);
+            SSAddrRequest ssAddr;
             InetSocketAddress remoteSrc = ctx.channel().attr(SSCommon.REMOTE_SRC).get();
 //        logger.info("remote addr:" + sender.getAddress().toString());
             if (remoteSrc.getAddress() instanceof Inet6Address) {
@@ -36,9 +36,10 @@ public class SSProtocolEncoder extends MessageToMessageEncoder<ByteBuf> {
             } else {
                 ssAddr = new SSAddrRequest(SocksAddressType.DOMAIN, remoteSrc.getHostString(), remoteSrc.getPort());
             }
-            ssAddr.encodeAsByteBuf(sendBuff);
+            ssAddr.encodeAsByteBuf(addrBuff);
+            out.add(Unpooled.wrappedBuffer(addrBuff, msg.retain()));
+        } else {
+            out.add(msg.retain());
         }
-        sendBuff.writeBytes(msg);
-        out.add(sendBuff);
     }
 }
