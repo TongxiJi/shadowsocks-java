@@ -1,80 +1,42 @@
 package cn.wowspeeder.config;
 
-/**
- * 配置
- * 
- * @author zhaohui
- * 
- */
+
+import com.google.gson.annotations.SerializedName;
+
+import java.util.Map;
+
 public class Config {
 
-	private String _ipAddr;
-	private int _port;
-	private String _localIpAddr;
-	private int _localPort;
-	private String _method;
-	private String _password;
+	@SerializedName("server")
+	private String server;
 
-	public Config() {
+	@SerializedName("port_password")
+	private Map<Integer,String> portPassword;
 
+	@SerializedName("method")
+	private String method;
+
+	public String getServer() {
+		return server;
 	}
 
-	public Config(String ipAddr, int port, String localIpAddr, int localPort,
-			String method, String password) {
-		_ipAddr = ipAddr;
-		_port = port;
-		_localIpAddr = localIpAddr;
-		_localPort = localPort;
-		_method = method;
-		_password = password;
+	public void setServer(String server) {
+		this.server = server;
 	}
 
-	public String get_ipAddr() {
-		return _ipAddr;
+	public Map<Integer,String> getPortPassword() {
+		return portPassword;
 	}
 
-	public void set_ipAddr(String _ipAddr) {
-		this._ipAddr = _ipAddr;
+	public void setPortPassword(Map<Integer,String> portPassword) {
+		this.portPassword = portPassword;
 	}
 
-	public int get_port() {
-		return _port;
+	public String getMethod() {
+		return method;
 	}
 
-	public void set_port(int _port) {
-		this._port = _port;
+	public void setMethod(String method) {
+		this.method = method;
 	}
-
-	public String get_localIpAddr() {
-		return _localIpAddr;
-	}
-
-	public void set_localIpAddr(String _localIpAddr) {
-		this._localIpAddr = _localIpAddr;
-	}
-
-	public int get_localPort() {
-		return _localPort;
-	}
-
-	public void set_localPort(int _localPort) {
-		this._localPort = _localPort;
-	}
-
-	public String get_method() {
-		return _method;
-	}
-
-	public void set_method(String _method) {
-		this._method = _method;
-	}
-
-	public String get_password() {
-		return _password;
-	}
-
-	public void set_password(String _password) {
-		this._password = _password;
-	}
-
 }
