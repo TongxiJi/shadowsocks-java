@@ -10,8 +10,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -21,8 +21,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class SSServer {
-
-    private static Logger logger = LoggerFactory.getLogger(SSServer.class);
+    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSServer.class);
 
     private static final String CONFIG = "conf/config.json";
 

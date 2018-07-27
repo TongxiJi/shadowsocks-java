@@ -1,13 +1,10 @@
 package cn.wowspeeder.ss;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.EmptyByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -23,7 +20,7 @@ import java.util.List;
  * The port number is a 2-byte big-endian unsigned integer.
  **/
 public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
-    private static Logger logger = LoggerFactory.getLogger(SSProtocolDecoder.class);
+    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSProtocolDecoder.class);
 
 
     @Override

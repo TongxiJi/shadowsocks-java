@@ -9,14 +9,15 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    private static Logger logger = LoggerFactory.getLogger(SSUdpProxyHandler.class);
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSUdpProxyHandler.class);
+
     private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
 
     public SSUdpProxyHandler() {

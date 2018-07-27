@@ -5,13 +5,12 @@ import cn.wowspeeder.encryption.ICrypt;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.util.List;
 
 public class SSCipherEncoder extends MessageToMessageEncoder<ByteBuf> {
-    private static Logger logger = LoggerFactory.getLogger(SSCipherEncoder.class);
-
+    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSCipherEncoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {

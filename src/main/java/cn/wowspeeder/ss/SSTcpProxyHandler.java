@@ -9,8 +9,8 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.ReferenceCountUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
 
 public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    private static Logger logger = LoggerFactory.getLogger(SSTcpProxyHandler.class);
+    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSTcpProxyHandler.class);
 
     private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
 

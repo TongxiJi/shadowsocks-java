@@ -5,11 +5,11 @@ import cn.wowspeeder.encryption.ICrypt;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
-    private static Logger logger = LoggerFactory.getLogger(SSCheckerReceive.class);
+    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSCheckerReceive.class);
 
     private String method;
     private String password;
@@ -38,20 +38,14 @@ public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
 //        logger.debug("channelRead0");
-
         boolean isUdp = msg instanceof DatagramPacket;
-        DatagramPacket udpRaw = null;
-        if (isUdp) {
-            udpRaw = ((DatagramPacket) msg);
-            if (udpRaw.content().readableBytes() < 4) { //no cipher, min size = 1 + 1 + 2 ,[1-byte type][variable-length host][2-byte port]
-                return;
-            }
-        }
-
-//        logger.debug("channelRead0 isUdp:"+isUdp);
         ctx.channel().attr(SSCommon.IS_UDP).set(isUdp);
 
         if (isUdp) {
+            DatagramPacket udpRaw = ((DatagramPacket) msg);
+            if (udpRaw.content().readableBytes() < 4) { //no cipher, min size = 1 + 1 + 2 ,[1-byte type][variable-length host][2-byte port]
+                return;
+            }
             ctx.channel().attr(SSCommon.CLIENT).set(udpRaw.sender());
             ctx.fireChannelRead(udpRaw.content());
         } else {

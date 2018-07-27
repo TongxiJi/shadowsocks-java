@@ -5,8 +5,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.socks.SocksAddressType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 public class SSProtocolEncoder extends MessageToMessageEncoder<ByteBuf> {
-    private static Logger logger = LoggerFactory.getLogger(SSProtocolEncoder.class);
+    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSProtocolEncoder.class);
 
 
     @Override
