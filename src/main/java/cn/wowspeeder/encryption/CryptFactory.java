@@ -4,10 +4,7 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
-import cn.wowspeeder.encryption.impl.AesCrypt;
-import cn.wowspeeder.encryption.impl.BlowFishCrypt;
-import cn.wowspeeder.encryption.impl.CamelliaCrypt;
-import cn.wowspeeder.encryption.impl.SeedCrypt;
+import cn.wowspeeder.encryption.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +19,9 @@ public class CryptFactory {
 		crypts.putAll(CamelliaCrypt.getCiphers());
 		crypts.putAll(BlowFishCrypt.getCiphers());
 		crypts.putAll(SeedCrypt.getCiphers());
+		crypts.putAll(Rc4Md5Crypt.getCiphers());
+		crypts.putAll(Chacha20Crypt.getCiphers());
+//		crypts.putAll(AeadCrypt.getCiphers());
 	}
 
 	public static ICrypt get(String name, String password) {

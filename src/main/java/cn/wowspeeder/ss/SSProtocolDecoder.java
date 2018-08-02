@@ -37,7 +37,7 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
         if (isUdp || (!isUdp && isFirstTcpPack != null && isFirstTcpPack)) {
             SSAddrRequest addrRequest = SSAddrRequest.getAddrRequest(msg);
             if (addrRequest == null) {
-                logger.error("failed to get address request from {}", ctx.channel().attr(SSCommon.CLIENT).get().getHostString());
+                logger.error("fail to get address request from {},pls check client's cipher setting", ctx.channel().attr(SSCommon.CLIENT).get().getHostString());
                 if (!ctx.channel().attr(SSCommon.IS_UDP).get()) {
                     ctx.close();
                 }
