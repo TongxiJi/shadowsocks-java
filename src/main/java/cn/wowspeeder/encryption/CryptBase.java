@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
@@ -62,8 +63,7 @@ public abstract class CryptBase implements ICrypt {
 			}
 			encCipher.init(isEncrypt, cipherParameters);
 		} else {
-			_decryptIV = new byte[_ivLength];
-			System.arraycopy(iv, 0, _decryptIV, 0, _ivLength);
+            _decryptIV = Arrays.copyOfRange(iv,0,_ivLength);
 			cipherParameters = getCipherParameters(iv);
 			try {
 				decCipher = getCipher(isEncrypt);
@@ -75,8 +75,7 @@ public abstract class CryptBase implements ICrypt {
 	}
 
 	protected CipherParameters getCipherParameters(byte[] iv){
-		_decryptIV = new byte[_ivLength];
-		System.arraycopy(iv, 0, _decryptIV, 0, _ivLength);
+		_decryptIV = Arrays.copyOfRange(iv,0,_ivLength);
 		return new ParametersWithIV(new KeyParameter(_key.getEncoded()), _decryptIV);
 	}
 
@@ -102,8 +101,7 @@ public abstract class CryptBase implements ICrypt {
 
 	@Override
 	public void encrypt(byte[] data, int length, ByteArrayOutputStream stream) {
-		byte[] d = new byte[length];
-		System.arraycopy(data, 0, d, 0, length);
+        byte[] d = Arrays.copyOfRange(data,0,length);
 		encrypt(d, stream);
 	}
 
@@ -115,9 +113,7 @@ public abstract class CryptBase implements ICrypt {
 			if (!_decryptIVSet || _ignoreIVSet) {
 				_decryptIVSet = true;
 				setIV(data, false);
-				temp = new byte[data.length - _ivLength];
-				System.arraycopy(data, _ivLength, temp, 0, data.length
-						- _ivLength);
+                temp = Arrays.copyOfRange(data,_ivLength,data.length);
 			} else {
 				temp = data;
 			}
@@ -128,8 +124,7 @@ public abstract class CryptBase implements ICrypt {
 
 	@Override
 	public void decrypt(byte[] data, int length, ByteArrayOutputStream stream) {
-		byte[] d = new byte[length];
-		System.arraycopy(data, 0, d, 0, length);
+		byte[] d = Arrays.copyOfRange(data,0,length);
 		decrypt(d, stream);
 	}
 
