@@ -12,12 +12,11 @@ import java.util.logging.Logger;
 import javax.crypto.SecretKey;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
-public abstract class CryptBase implements ICrypt {
+public abstract class CryptSteamBase implements ICrypt {
 
 	protected final String _name;
 	protected final SecretKey _key;
@@ -33,9 +32,9 @@ public abstract class CryptBase implements ICrypt {
 	protected final Lock decLock = new ReentrantLock();
 	protected StreamCipher encCipher;
 	protected StreamCipher decCipher;
-	private Logger logger = Logger.getLogger(CryptBase.class.getName());
+	private Logger logger = Logger.getLogger(CryptSteamBase.class.getName());
 
-	public CryptBase(String name, String password) {
+	public CryptSteamBase(String name, String password) {
 		_name = name.toLowerCase();
 		_ivLength = getIVLength();
 		_keyLength = getKeyLength();

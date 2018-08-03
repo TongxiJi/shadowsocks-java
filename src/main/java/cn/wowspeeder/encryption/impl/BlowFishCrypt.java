@@ -3,7 +3,7 @@ package cn.wowspeeder.encryption.impl;
 import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.engines.BlowfishEngine;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import cn.wowspeeder.encryption.CryptBase;
+import cn.wowspeeder.encryption.CryptSteamBase;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Blow fish cipher implementation
  */
-public class BlowFishCrypt extends CryptBase {
+public class BlowFishCrypt extends CryptSteamBase {
 
     public final static String CIPHER_BLOWFISH_CFB = "bf-cfb";
 

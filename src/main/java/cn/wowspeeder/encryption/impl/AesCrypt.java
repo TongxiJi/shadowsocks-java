@@ -12,7 +12,7 @@ import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.modes.OFBBlockCipher;
-import cn.wowspeeder.encryption.CryptBase;
+import cn.wowspeeder.encryption.CryptSteamBase;
 
 /**
  * AES 实现类
@@ -20,7 +20,7 @@ import cn.wowspeeder.encryption.CryptBase;
  * @author zhaohui
  * 
  */
-public class AesCrypt extends CryptBase {
+public class AesCrypt extends CryptSteamBase {
 
 	public final static String CIPHER_AES_128_CFB = "aes-128-cfb";
 	public final static String CIPHER_AES_192_CFB = "aes-192-cfb";

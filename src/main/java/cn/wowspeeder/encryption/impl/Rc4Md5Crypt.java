@@ -1,6 +1,6 @@
 package cn.wowspeeder.encryption.impl;
 
-import cn.wowspeeder.encryption.CryptBase;
+import cn.wowspeeder.encryption.CryptSteamBase;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.RC4Engine;
@@ -14,7 +14,7 @@ import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Rc4Md5Crypt extends CryptBase {
+public class Rc4Md5Crypt extends CryptSteamBase {
     public static String CIPHER_RC4_MD5 = "rc4-md5";
 
     public static Map<String, String> getCiphers() {

@@ -3,7 +3,7 @@ package cn.wowspeeder.encryption.impl;
 import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.engines.CamelliaEngine;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import cn.wowspeeder.encryption.CryptBase;
+import cn.wowspeeder.encryption.CryptSteamBase;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Camellia cipher implementation
  */
-public class CamelliaCrypt extends CryptBase {
+public class CamelliaCrypt extends CryptSteamBase {
 
     public final static String CIPHER_CAMELLIA_128_CFB = "camellia-128-cfb";
     public final static String CIPHER_CAMELLIA_192_CFB = "camellia-192-cfb";

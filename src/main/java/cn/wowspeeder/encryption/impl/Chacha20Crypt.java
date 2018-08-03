@@ -1,6 +1,6 @@
 package cn.wowspeeder.encryption.impl;
 
-import cn.wowspeeder.encryption.CryptBase;
+import cn.wowspeeder.encryption.CryptSteamBase;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.ChaCha7539Engine;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
@@ -12,7 +12,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Chacha20Crypt  extends CryptBase {
+public class Chacha20Crypt  extends CryptSteamBase {
     public final static String CIPHER_CHACHA20 = "chacha20";
     public final static String CIPHER_CHACHA20_IETF = "chacha20-ietf";
 

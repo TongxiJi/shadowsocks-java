@@ -3,7 +3,7 @@ package cn.wowspeeder.encryption.impl;
 import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.engines.SEEDEngine;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import cn.wowspeeder.encryption.CryptBase;
+import cn.wowspeeder.encryption.CryptSteamBase;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Seed cipher implementation
  */
-public class SeedCrypt extends CryptBase {
+public class SeedCrypt extends CryptSteamBase {
 
     public final static String CIPHER_SEED_CFB = "seed-cfb";
 
