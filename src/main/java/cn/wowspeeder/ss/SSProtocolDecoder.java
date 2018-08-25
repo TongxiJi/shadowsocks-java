@@ -6,6 +6,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -32,7 +33,7 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
         Boolean isUdp = ctx.channel().attr(SSCommon.IS_UDP).get();
         Boolean isFirstTcpPack = ctx.channel().attr(SSCommon.IS_FIRST_TCP_PACK).get();
 
-//        logger.debug("dataBuff readableBytes:" + msg.readableBytes() + isFirstTcpPack);
+        logger.debug("dataBuff readableBytes:" + msg.readableBytes() + isFirstTcpPack);
 
         if (isUdp || (!isUdp && isFirstTcpPack != null && isFirstTcpPack)) {
             SSAddrRequest addrRequest = SSAddrRequest.getAddrRequest(msg);

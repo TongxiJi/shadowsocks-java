@@ -10,6 +10,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class SSCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
@@ -25,6 +26,7 @@ public class SSCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
             }
             return;
         }
+        logger.debug( (ctx.channel().attr(SSCommon.IS_UDP).get()? "(UDP)":"(TCP)")+ " decode after:"+ data.length);
         list.add(msg.retain().clear().writeBytes(data));//
     }
 }

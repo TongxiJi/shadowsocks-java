@@ -1,5 +1,6 @@
 package cn.wowspeeder.encryption;
 
+import org.bouncycastle.asn1.cms.GCMParameters;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -18,6 +19,7 @@ import java.util.logging.Logger;
 
 //TODO unfinished
 public abstract class CryptAeadBase implements ICrypt {
+	private Logger logger = Logger.getLogger(CryptAeadBase.class.getName());
 
 	protected final String _name;
 	protected final SecretKey _key;
@@ -33,7 +35,6 @@ public abstract class CryptAeadBase implements ICrypt {
 	protected final Lock decLock = new ReentrantLock();
 	protected AEADBlockCipher encCipher;
 	protected AEADBlockCipher decCipher;
-	private Logger logger = Logger.getLogger(CryptAeadBase.class.getName());
 
 	public CryptAeadBase(String name, String password) {
 		_name = name.toLowerCase();
