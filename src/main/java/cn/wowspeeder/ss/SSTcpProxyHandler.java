@@ -24,7 +24,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private Channel clientChannel;
     private Channel remoteChannel;
     private Bootstrap proxyClient;
-    private List<ByteBuf> clientBuffs;
+    private List<ByteBuf> clientBuffs = new ArrayList<>();
 
     public SSTcpProxyHandler() {
     }
@@ -99,13 +99,8 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 if (future.isSuccess()) {
                                     logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                     remoteChannel = future.channel();
-                                    if (clientBuffs != null) {
-                                        ListIterator<ByteBuf> bufsIterator = clientBuffs.listIterator();
-                                        while (bufsIterator.hasNext()) {
-                                            remoteChannel.writeAndFlush(bufsIterator.next());
-                                        }
-                                        clientBuffs = null;
-                                    }
+                                    //write and flush cacheList
+                                    writeAndFlushByteBufList();
                                 } else {
                                     logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
                                     proxyChannelClose();
@@ -121,21 +116,9 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
         }
 
-
-        if (remoteChannel == null) {
-            if (clientBuffs == null) {
-                clientBuffs = new ArrayList<>();
-            }
-            clientBuffs.add(msg.retain());
-            logger.debug("channel id {},add to client buff list", clientCtx.channel().id().toString());
-        } else {
-            if (clientBuffs == null) {
-                remoteChannel.writeAndFlush(msg.retain());
-            } else {
-                clientBuffs.add(msg.retain());
-            }
-            logger.debug("channel id {},remote channel write {}", clientCtx.channel().id().toString(), msg.readableBytes());
-        }
+        //put list and refresh cache
+        clientBuffs.add(msg.retain());
+        writeAndFlushByteBufList();
     }
 
 
@@ -168,6 +151,22 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
         } catch (Exception e) {
 //            logger.error("close channel error", e);
+        }
+    }
+    /**
+     * print ByteBufList to remote channel
+     */
+    private void writeAndFlushByteBufList() {
+        if (remoteChannel != null && !clientBuffs.isEmpty()) {
+            for (ByteBuf messageBuf : clientBuffs) {
+                remoteChannel.write(messageBuf);
+            }
+            clientBuffs.clear();
+            remoteChannel.flush();
+
+            if(logger.isDebugEnabled()){
+                logger.debug("channel id {},remote channel write", remoteChannel.id().toString());
+            }
         }
     }
 }
