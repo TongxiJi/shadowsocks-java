@@ -21,8 +21,6 @@ import java.util.concurrent.TimeUnit;
 public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSTcpProxyHandler.class);
 
-    private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
-
     private Channel clientChannel;
     private Channel remoteChannel;
     private Bootstrap proxyClient;
@@ -49,7 +47,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
             InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
 
-            proxyClient.group(proxyBossGroup).channel(NioSocketChannel.class)
+            proxyClient.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 60 * 1000)
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
