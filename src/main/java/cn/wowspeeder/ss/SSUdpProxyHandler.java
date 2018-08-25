@@ -3,6 +3,7 @@ package cn.wowspeeder.ss;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.timeout.IdleState;
@@ -16,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static InternalLogger logger = InternalLoggerFactory.getInstance(SSUdpProxyHandler.class);
+
+    private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
 
     public SSUdpProxyHandler() {
 
@@ -33,7 +36,7 @@ public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel pc = NatMapper.getUdpChannel(clientSender);
         if (pc == null) {
             Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(clientCtx.channel().eventLoop()).channel(NioDatagramChannel.class)
+            bootstrap.group(proxyBossGroup).channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_RCVBUF, 64 * 1024)// 设置UDP读缓冲区为64k
                     .option(ChannelOption.SO_SNDBUF, 64 * 1024)// 设置UDP写缓冲区为64k
                     .handler(new ChannelInitializer<Channel>() {
