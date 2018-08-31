@@ -42,8 +42,12 @@ public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     .handler(new ChannelInitializer<Channel>() {
                         @Override
                         protected void initChannel(Channel ch) throws Exception {
+                            int proxyIdleTimeout
+                                    = clientRecipient.getPort() != 53
+                                    ? SSCommon.UDP_PROXY_IDEL_TIME
+                                    : SSCommon.UDP_DNS_PROXY_IDEL_TIME;
                             ch.pipeline()
-                                    .addLast("timeout", new IdleStateHandler(0, 0, 2, TimeUnit.MINUTES) {
+                                    .addLast("timeout", new IdleStateHandler(0, 0, proxyIdleTimeout, TimeUnit.SECONDS) {
                                         @Override
                                         protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
 //                                            logger.debug("{} state:{}", clientSender.toString(), state.toString());

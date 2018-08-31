@@ -1,20 +1,34 @@
-基于netty4实现的shadowsocks服务器端
-====
+# shadowsocks-java
+A  implementation of Shadowsocks in Java base on netty4 framework.
 
-特性:
-- TCP & UDP full support
+# Features
+- [x] TCP & UDP full support
+- [x] DNS proxy optimization
 
-## 安装
-### 环境要求
+# environment
 * JRE8
 
-使用
----
-1.maven打包，生成shadowsocks-netty-server-1.1.0-alpha-bin.zip包<br>
-2.解压zip包，conf/config.json进行相关配置<br>
-3.执行shell文件夹中的bat/sh文件启动服务<br>
+# install
+1. download shadowsocks-netty-server-x.x.x-bin.zip
+2. unzip shadowsocks-netty-server-x.x.x-bin.zip
+3. run
+```
+#unix like:
+cd shadowsocks-netty-server-x.x.x
+bash shadowsocks-netty-server.sh
+```
+
+```
+#windows:
+shadowsocks-netty-server.bat
+```
+
+# build
+1. import as maven project
+2. maven package
 
 ## TODO
-
+* [ ] ss-local implementation
+* [ ] ssr obfs features implementation(maybe no use,but for fun)
 * [ ] performance optimization
 * [ ] rate limit

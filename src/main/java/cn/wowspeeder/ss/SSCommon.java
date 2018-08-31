@@ -12,4 +12,10 @@ public class SSCommon {
     public static final AttributeKey<InetSocketAddress> CLIENT = AttributeKey.valueOf("ssclient");
     public static final AttributeKey<InetSocketAddress> REMOTE_DES = AttributeKey.valueOf("ssremotedes");
     public static final AttributeKey<InetSocketAddress> REMOTE_SRC = AttributeKey.valueOf("ssremotesrc");
+
+
+    public static final int TCP_PROXY_IDEL_TIME = 120;
+    public static final int UDP_PROXY_IDEL_TIME = 120;
+    //udp proxy,when is dns proxy,listener timeout
+    public static final int UDP_DNS_PROXY_IDEL_TIME = 10;
 }

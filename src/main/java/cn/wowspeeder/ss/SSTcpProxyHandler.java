@@ -57,7 +57,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 @Override
                                 protected void initChannel(Channel ch) throws Exception {
                                     ch.pipeline()
-                                            .addLast("timeout", new IdleStateHandler(0, 0, 15, TimeUnit.MINUTES) {
+                                            .addLast("timeout", new IdleStateHandler(0, 0, SSCommon.TCP_PROXY_IDEL_TIME, TimeUnit.SECONDS) {
                                                 @Override
                                                 protected IdleStateEvent newIdleStateEvent(IdleState state, boolean first) {
                                                     logger.debug("{} state:{}", clientRecipient.toString(), state.toString());
