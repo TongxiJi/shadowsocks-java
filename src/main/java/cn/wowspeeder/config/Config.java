@@ -16,6 +16,12 @@ public class Config {
 	@SerializedName("method")
 	private String method;
 
+	@SerializedName("obfs")
+	private String obfs;
+
+	@SerializedName("obfsparam")
+	private String obfsparam;
+
 	public String getServer() {
 		return server;
 	}
@@ -38,5 +44,21 @@ public class Config {
 
 	public void setMethod(String method) {
 		this.method = method;
+	}
+
+	public String getObfs() {
+		return obfs;
+	}
+
+	public void setObfs(String obfs) {
+		this.obfs = obfs;
+	}
+
+	public String getObfsParam() {
+		return obfsparam;
+	}
+
+	public void setObfsparam(String obfsparam) {
+		this.obfsparam = obfsparam;
 	}
 }

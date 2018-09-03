@@ -33,9 +33,9 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
         Boolean isUdp = ctx.channel().attr(SSCommon.IS_UDP).get();
         Boolean isFirstTcpPack = ctx.channel().attr(SSCommon.IS_FIRST_TCP_PACK).get();
 
-        logger.debug("dataBuff readableBytes:" + msg.readableBytes() + isFirstTcpPack);
+        logger.debug("dataBuff readableBytes:" + msg.readableBytes());
 
-        if (isUdp || (!isUdp && isFirstTcpPack != null && isFirstTcpPack)) {
+        if (isUdp || (isFirstTcpPack != null && isFirstTcpPack)) {
             SSAddrRequest addrRequest = SSAddrRequest.getAddrRequest(msg);
             if (addrRequest == null) {
                 logger.error("fail to get address request from {},pls check client's cipher setting", ctx.channel().attr(SSCommon.CLIENT).get().getHostString());
@@ -53,11 +53,6 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 //            return;
 //        }
         out.add(msg.retain());
-        //TODO test data
-//        InetSocketAddress recipient = ctx.channel().attr(SSCommon.CLIENT).get();
-//        ByteBuf testbuff = Unpooled.buffer();
-//        testbuff.writeBytes(new byte[]{0x01, 0x02});
-//        ctx.channel().writeAndFlush(new DatagramPacket(testbuff, recipient));
     }
 
     @Override

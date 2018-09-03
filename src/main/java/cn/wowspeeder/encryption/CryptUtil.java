@@ -2,6 +2,7 @@ package cn.wowspeeder.encryption;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +46,10 @@ public class CryptUtil {
             int len = bytebuff.readableBytes();
             byte[] arr = new byte[len];
             bytebuff.getBytes(0, arr);
+//            logger.debug("before:" + Arrays.toString(arr));
             crypt.decrypt(arr, arr.length, _localOutStream);
             data = _localOutStream.toByteArray();
+//            logger.debug("after:" + Arrays.toString(data));
         } catch (Exception e) {
             logger.error("decrypt error", e);
         } finally {

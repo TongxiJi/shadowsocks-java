@@ -39,7 +39,6 @@ public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-//        logger.debug("channelRead0");
         boolean isUdp = msg instanceof DatagramPacket;
         ctx.channel().attr(SSCommon.IS_UDP).set(isUdp);
 

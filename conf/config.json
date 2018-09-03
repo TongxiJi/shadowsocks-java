@@ -4,5 +4,6 @@
     "443": "889900",
     "444": "889900"
   },
-  "method": "aes-256-cfb"
+  "method": "aes-256-cfb",
+  "obfs":"plain"
 }
