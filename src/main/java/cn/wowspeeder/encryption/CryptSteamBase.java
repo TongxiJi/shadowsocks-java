@@ -43,7 +43,7 @@ public abstract class CryptSteamBase implements ICrypt {
 	}
 
 	@Override
-	public void ivSetIgnore(boolean ignore) {
+	public void saltSetIgnore(boolean ignore) {
 		this._ignoreIVSet = ignore;
 	}
 

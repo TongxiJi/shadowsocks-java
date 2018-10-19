@@ -21,7 +21,7 @@ public class CryptFactory {
 		crypts.putAll(SeedCrypt.getCiphers());
 		crypts.putAll(Rc4Md5Crypt.getCiphers());
 		crypts.putAll(Chacha20Crypt.getCiphers());
-//		crypts.putAll(AeadCrypt.getCiphers());
+//		crypts.putAll(AscGcmCrypt.getCiphers());
 	}
 
 	public static ICrypt get(String name, String password) {
