@@ -17,7 +17,7 @@ public class CryptUtil {
         byte[] data = null;
         ByteArrayOutputStream _remoteOutStream = null;
         try {
-            _remoteOutStream = new ByteArrayOutputStream();
+            _remoteOutStream = new ByteArrayOutputStream(64 * 1024);
             ByteBuf bytebuff = (ByteBuf) msg;
             int len = bytebuff.readableBytes();
             byte[] arr = new byte[len];
@@ -41,7 +41,7 @@ public class CryptUtil {
         byte[] data = null;
         ByteArrayOutputStream _localOutStream = null;
         try {
-            _localOutStream = new ByteArrayOutputStream();
+            _localOutStream = new ByteArrayOutputStream(64 * 1024);
             ByteBuf bytebuff = (ByteBuf) msg;
             int len = bytebuff.readableBytes();
             byte[] arr = new byte[len];

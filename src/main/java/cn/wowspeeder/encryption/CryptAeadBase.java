@@ -3,6 +3,7 @@ package cn.wowspeeder.encryption;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
@@ -14,6 +15,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -45,8 +47,8 @@ public abstract class CryptAeadBase implements ICrypt {
     protected byte[] encNonce = new byte[getNonceLength()];
     protected byte[] decNonce = new byte[getNonceLength()];
 
-    protected ByteBuffer encBuffer = ByteBuffer.allocate(2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength());
-    protected ByteBuffer decBuffer = ByteBuffer.allocate(PAYLOAD_SIZE_MASK + getTagLength());
+    protected byte[] encBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
+    protected byte[] decBuffer = new byte[PAYLOAD_SIZE_MASK + getTagLength()];
 
     public CryptAeadBase(String name, String password) {
         _name = name.toLowerCase();
@@ -67,28 +69,26 @@ public abstract class CryptAeadBase implements ICrypt {
         return okm;
     }
 
-
-    protected byte[] increment(byte[] nonce) {
+    protected static void increment(byte[] nonce) {
         for (int i = 0; i < nonce.length; i++) {
             ++nonce[i];
             if (nonce[i] != 0) {
                 break;
             }
         }
-        return nonce;
     }
 
 
     protected CipherParameters getCipherParameters(boolean forEncryption) {
-        AEADParameters parameters = new AEADParameters(
+//        logger.debug("getCipherParameters subkey:{}",Arrays.toString(forEncryption ? encSubkey : decSubkey));
+        return new AEADParameters(
                 new KeyParameter(forEncryption ? encSubkey : decSubkey),
                 getTagLength() * 8,
-                forEncryption ? encNonce : decNonce);
-        return parameters;
+                forEncryption ? Arrays.copyOf(encNonce, encNonce.length) : Arrays.copyOf(decNonce, decNonce.length));
     }
 
     @Override
-    public void encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException {
+    public void encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException {
         synchronized (encLock) {
             stream.reset();
             if (!_encryptSaltSet || _ignoreSaltSet) {
@@ -103,13 +103,14 @@ public abstract class CryptAeadBase implements ICrypt {
     }
 
     @Override
-    public void encrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException {
+    public void encrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException {
+//        logger.debug("{} encrypt {}", this.hashCode(),new String(data, Charset.forName("GBK")));//
         byte[] d = Arrays.copyOfRange(data, 0, length);
         encrypt(d, stream);
     }
 
     @Override
-    public void decrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException {
+    public void decrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, InvalidCipherTextException {
         byte[] temp;
         synchronized (decLock) {
             stream.reset();
@@ -130,7 +131,8 @@ public abstract class CryptAeadBase implements ICrypt {
     }
 
     @Override
-    public void decrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException {
+    public void decrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, InvalidCipherTextException {
+//        logger.debug("{} decrypt {}", this.hashCode(),Arrays.toString(data));
         byte[] d = Arrays.copyOfRange(data, 0, length);
         decrypt(d, stream);
     }
@@ -144,9 +146,9 @@ public abstract class CryptAeadBase implements ICrypt {
     protected abstract AEADBlockCipher getCipher(boolean isEncrypted)
             throws GeneralSecurityException;
 
-    protected abstract void _encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException;
+    protected abstract void _encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException;
 
-    protected abstract void _decrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException;
+    protected abstract void _decrypt(byte[] data, ByteArrayOutputStream stream) throws InvalidCipherTextException;
 
     protected abstract int getKeyLength();
 
