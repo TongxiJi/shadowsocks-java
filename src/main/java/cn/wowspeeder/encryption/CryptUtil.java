@@ -2,8 +2,10 @@ package cn.wowspeeder.encryption;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,7 @@ public class CryptUtil {
 
     private static Logger logger = LoggerFactory.getLogger(CryptUtil.class);
 
-    public static byte[] encrypt(ICrypt crypt, Object msg) {
+    public static byte[] encrypt(ICrypt crypt, Object msg) throws Exception {
         byte[] data = null;
         ByteArrayOutputStream _remoteOutStream = null;
         try {
@@ -24,8 +26,6 @@ public class CryptUtil {
             bytebuff.getBytes(0, arr);
             crypt.encrypt(arr, arr.length, _remoteOutStream);
             data = _remoteOutStream.toByteArray();
-        } catch (Exception e) {
-            logger.error("encrypt error", e);
         } finally {
             if (_remoteOutStream != null) {
                 try {
@@ -37,7 +37,7 @@ public class CryptUtil {
         return data;
     }
 
-    public static byte[] decrypt(ICrypt crypt, Object msg) {
+    public static byte[] decrypt(ICrypt crypt, Object msg) throws Exception {
         byte[] data = null;
         ByteArrayOutputStream _localOutStream = null;
         try {
@@ -50,8 +50,6 @@ public class CryptUtil {
             crypt.decrypt(arr, arr.length, _localOutStream);
             data = _localOutStream.toByteArray();
 //            logger.debug("after:" + Arrays.toString(data));
-        } catch (Exception e) {
-            logger.error("decrypt error", e);
         } finally {
             if (_localOutStream != null) {
                 try {

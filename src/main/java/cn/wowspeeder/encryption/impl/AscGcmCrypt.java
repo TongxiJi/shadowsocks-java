@@ -9,14 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,8 +102,6 @@ public class AscGcmCrypt extends CryptAeadBase {
 //        byte[] buffer = new byte[data.length];
 //        int noBytesProcessed = encCipher.processBytes(data, 0, data.length, buffer, 0);
 //        stream.write(buffer, 0, noBytesProcessed);
-        logger.debug("_encrypt data length:{}", data.length);
-
         ByteBuffer buffer = ByteBuffer.wrap(data);
         while (buffer.hasRemaining()) {
             int nr = Math.min(buffer.remaining(), PAYLOAD_SIZE_MASK);
@@ -145,29 +140,43 @@ public class AscGcmCrypt extends CryptAeadBase {
 
         logger.debug("id:{} remaining {}", hashCode(), buffer.hasRemaining());
         while (buffer.hasRemaining()) {
-
-            buffer.get(decBuffer, 0, 2 + getTagLength());
-            decCipher.init(false, getCipherParameters(false));
-            decCipher.doFinal(
-                    decBuffer,
-                    decCipher.processBytes(decBuffer, 0, 2 + getTagLength(), decBuffer, 0)
-            );
-            increment(decNonce);
+            if (chunkLastReadLen == 0) {
+                buffer.get(decBuffer, 0, 2 + getTagLength());
+                decCipher.init(false, getCipherParameters(false));
+                decCipher.doFinal(
+                        decBuffer,
+                        decCipher.processBytes(decBuffer, 0, 2 + getTagLength(), decBuffer, 0)
+                );
+                increment(decNonce);
+            }
 //        logger.debug(Arrays.toString(decBuffer));
             int size = ByteBuffer.wrap(decBuffer, 0, 2).getShort();
             logger.debug("payload length:{},remaining:{}", size, buffer.remaining());
             if (size == 0) {
+                //TODO exists?
                 return;
+            } else if (chunkLastReadLen != 0) {
+                buffer.get(decBuffer, 2 + getTagLength() + chunkLastReadLen, getTagLength() + size - chunkLastReadLen);
+                chunkLastReadLen = 0;
+            } else {
+                if (buffer.remaining() < size + getTagLength()) {
+                    int remaining = buffer.remaining();
+                    buffer.get(decBuffer, 2 + getTagLength(), remaining);
+                    //[encrypted payload][payload tag] 还剩   size + getTagLength() - remaining
+                    chunkLastReadLen = remaining;
+                    return;
+                } else {
+                    buffer.get(decBuffer, 2 + getTagLength(), size + getTagLength());
+                    chunkLastReadLen = 0;
+                }
             }
-            //TODO when remaining < size + getTagLength(), should read bytes from tcp conn util full of “size + getTagLength()”
-            buffer.get(decBuffer, 0, size + getTagLength());
             decCipher.init(false, getCipherParameters(false));
             decCipher.doFinal(
                     decBuffer,
-                    decCipher.processBytes(decBuffer, 0, size + getTagLength(), decBuffer, 0)
+                    (2 + getTagLength()) + decCipher.processBytes(decBuffer, 2 + getTagLength(), size + getTagLength(), decBuffer, 2 + getTagLength())
             );
             increment(decNonce);
-            stream.write(decBuffer, 0, size);
+            stream.write(decBuffer, 2 + getTagLength(), size);
         }
     }
 }

@@ -15,7 +15,6 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -49,6 +48,12 @@ public abstract class CryptAeadBase implements ICrypt {
 
     protected byte[] encBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
     protected byte[] decBuffer = new byte[PAYLOAD_SIZE_MASK + getTagLength()];
+
+
+    /**
+     * last chunk read size
+     */
+    protected int chunkLastReadLen = 0;
 
     public CryptAeadBase(String name, String password) {
         _name = name.toLowerCase();
