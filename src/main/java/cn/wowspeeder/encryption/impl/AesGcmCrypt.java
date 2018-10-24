@@ -18,8 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class AscGcmCrypt extends CryptAeadBase {
-    private static Logger logger = LoggerFactory.getLogger(AscGcmCrypt.class);
+public class AesGcmCrypt extends CryptAeadBase {
+    private static Logger logger = LoggerFactory.getLogger(AesGcmCrypt.class);
 
     public final static String CIPHER_AEAD_128_GCM = "aes-128-gcm";
     //    public final static String CIPHER_AEAD_192_GCM = "aes-192-gcm";
@@ -27,14 +27,14 @@ public class AscGcmCrypt extends CryptAeadBase {
 
     public static Map<String, String> getCiphers() {
         Map<String, String> ciphers = new HashMap<>();
-        ciphers.put(CIPHER_AEAD_128_GCM, AscGcmCrypt.class.getName());
-//        ciphers.put(CIPHER_AEAD_192_GCM, AscGcmCrypt.class.getName());
-        ciphers.put(CIPHER_AEAD_256_GCM, AscGcmCrypt.class.getName());
+        ciphers.put(CIPHER_AEAD_128_GCM, AesGcmCrypt.class.getName());
+//        ciphers.put(CIPHER_AEAD_192_GCM, AesGcmCrypt.class.getName());
+        ciphers.put(CIPHER_AEAD_256_GCM, AesGcmCrypt.class.getName());
 
         return ciphers;
     }
 
-    public AscGcmCrypt(String name, String password) {
+    public AesGcmCrypt(String name, String password) {
         super(name, password);
     }
 

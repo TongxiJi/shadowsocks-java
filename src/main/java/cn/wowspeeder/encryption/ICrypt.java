@@ -14,7 +14,7 @@ import java.security.InvalidAlgorithmParameterException;
  */
 public interface ICrypt {
 
-    void saltSetIgnore(boolean ignore);
+    void isForUdp(boolean isForUdp);
 
     void encrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
 

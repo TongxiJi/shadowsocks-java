@@ -33,7 +33,7 @@ public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
         super.channelActive(ctx);
         ICrypt _crypt = CryptFactory.get(this.method, this.password);
         assert _crypt != null;
-        _crypt.saltSetIgnore(isForUDP);
+        _crypt.isForUdp(isForUDP);
         ctx.channel().attr(SSCommon.CIPHER).set(_crypt);
     }
 

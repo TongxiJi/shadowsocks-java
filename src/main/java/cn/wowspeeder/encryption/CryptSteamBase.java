@@ -23,7 +23,7 @@ public abstract class CryptSteamBase implements ICrypt {
 	protected final ShadowSocksKey _ssKey;
 	protected final int _ivLength;
 	protected final int _keyLength;
-	protected boolean _ignoreIVSet;
+	protected boolean isForUdp;
 	protected boolean _encryptIVSet;
 	protected boolean _decryptIVSet;
 	protected byte[] _encryptIV;
@@ -43,8 +43,8 @@ public abstract class CryptSteamBase implements ICrypt {
 	}
 
 	@Override
-	public void saltSetIgnore(boolean ignore) {
-		this._ignoreIVSet = ignore;
+	public void isForUdp(boolean isForUdp) {
+		this.isForUdp = isForUdp;
 	}
 
 	protected void setIV(byte[] iv, boolean isEncrypt) {
@@ -82,7 +82,7 @@ public abstract class CryptSteamBase implements ICrypt {
 	public void encrypt(byte[] data, ByteArrayOutputStream stream) {
 		synchronized (encLock) {
 			stream.reset();
-			if (!_encryptIVSet || _ignoreIVSet) {
+			if (!_encryptIVSet || isForUdp) {
 				_encryptIVSet = true;
 				byte[] iv = randomBytes(_ivLength);
 				setIV(iv, true);
@@ -109,7 +109,7 @@ public abstract class CryptSteamBase implements ICrypt {
 		byte[] temp;
 		synchronized (decLock) {
 			stream.reset();
-			if (!_decryptIVSet || _ignoreIVSet) {
+			if (!_decryptIVSet || isForUdp) {
 				_decryptIVSet = true;
 				setIV(data, false);
                 temp = Arrays.copyOfRange(data,_ivLength,data.length);

@@ -3,7 +3,6 @@ package cn.wowspeeder.encryption;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
@@ -13,7 +12,6 @@ import org.bouncycastle.crypto.params.KeyParameter;
 
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -30,11 +28,13 @@ public abstract class CryptAeadBase implements ICrypt {
 
     private static byte[] info = "ss-subkey".getBytes();
 
+    private static byte[] ZERO_NONCE = null;
+
 
     protected final String _name;
     protected final ShadowSocksKey _ssKey;
     protected final int _keyLength;
-    protected boolean _ignoreSaltSet;
+    private boolean isForUdp = false;
     protected boolean _encryptSaltSet;
     protected boolean _decryptSaltSet;
     protected final Lock encLock = new ReentrantLock();
@@ -43,8 +43,8 @@ public abstract class CryptAeadBase implements ICrypt {
     protected AEADBlockCipher decCipher;
     private byte[] encSubkey;
     private byte[] decSubkey;
-    protected byte[] encNonce = new byte[getNonceLength()];
-    protected byte[] decNonce = new byte[getNonceLength()];
+    protected byte[] encNonce;
+    protected byte[] decNonce;
 
     protected byte[] encBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
     protected byte[] decBuffer = new byte[PAYLOAD_SIZE_MASK + getTagLength()];
@@ -66,8 +66,18 @@ public abstract class CryptAeadBase implements ICrypt {
     }
 
     @Override
-    public void saltSetIgnore(boolean ignore) {
-        this._ignoreSaltSet = ignore;
+    public void isForUdp(boolean isForUdp) {
+        this.isForUdp = isForUdp;
+        if (!isForUdp) {
+            if (encNonce == null && decNonce == null) {
+                encNonce = new byte[getNonceLength()];
+                decNonce = new byte[getNonceLength()];
+            }
+        } else {
+            if (ZERO_NONCE == null) {
+                ZERO_NONCE = new byte[getTagLength()];
+            }
+        }
     }
 
     private byte[] genSubkey(byte[] salt) {
@@ -90,17 +100,24 @@ public abstract class CryptAeadBase implements ICrypt {
 
     protected CipherParameters getCipherParameters(boolean forEncryption) {
 //        logger.debug("getCipherParameters subkey:{}",Arrays.toString(forEncryption ? encSubkey : decSubkey));
+        byte[] nonce;
+        if (!isForUdp) {
+            nonce = forEncryption ? Arrays.copyOf(encNonce, getNonceLength()) : Arrays.copyOf(decNonce, getNonceLength());
+        } else {
+            nonce = ZERO_NONCE;
+        }
         return new AEADParameters(
                 new KeyParameter(forEncryption ? encSubkey : decSubkey),
                 getTagLength() * 8,
-                forEncryption ? Arrays.copyOf(encNonce, encNonce.length) : Arrays.copyOf(decNonce, decNonce.length));
+                nonce
+        );
     }
 
     @Override
     public void encrypt(byte[] data, ByteArrayOutputStream stream) throws Exception {
         synchronized (encLock) {
             stream.reset();
-            if (!_encryptSaltSet || _ignoreSaltSet) {
+            if (!_encryptSaltSet || isForUdp) {
                 byte[] salt = randomBytes(getSaltLength());
                 stream.write(salt);
                 encSubkey = genSubkey(salt);
@@ -124,7 +141,7 @@ public abstract class CryptAeadBase implements ICrypt {
         synchronized (decLock) {
             stream.reset();
             ByteBuffer buffer = ByteBuffer.wrap(data);
-            if (decCipher == null || _ignoreSaltSet) {
+            if (decCipher == null || isForUdp) {
                 _decryptSaltSet = true;
                 byte[] salt = new byte[getSaltLength()];
                 buffer.get(salt);
