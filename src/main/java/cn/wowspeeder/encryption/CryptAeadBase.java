@@ -49,11 +49,15 @@ public abstract class CryptAeadBase implements ICrypt {
     protected byte[] encBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
     protected byte[] decBuffer = new byte[PAYLOAD_SIZE_MASK + getTagLength()];
 
+    /**
+     * last chunk payload len already read size
+     */
+    protected int payloadLenRead = 0;
 
     /**
-     * last chunk read size
+     * last chunk payload already read size
      */
-    protected int chunkLastReadLen = 0;
+    protected int payloadRead = 0;
 
     public CryptAeadBase(String name, String password) {
         _name = name.toLowerCase();
@@ -93,7 +97,7 @@ public abstract class CryptAeadBase implements ICrypt {
     }
 
     @Override
-    public void encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException {
+    public void encrypt(byte[] data, ByteArrayOutputStream stream) throws Exception {
         synchronized (encLock) {
             stream.reset();
             if (!_encryptSaltSet || _ignoreSaltSet) {
@@ -108,14 +112,14 @@ public abstract class CryptAeadBase implements ICrypt {
     }
 
     @Override
-    public void encrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException {
+    public void encrypt(byte[] data, int length, ByteArrayOutputStream stream) throws Exception {
 //        logger.debug("{} encrypt {}", this.hashCode(),new String(data, Charset.forName("GBK")));//
         byte[] d = Arrays.copyOfRange(data, 0, length);
         encrypt(d, stream);
     }
 
     @Override
-    public void decrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, InvalidCipherTextException {
+    public void decrypt(byte[] data, ByteArrayOutputStream stream) throws Exception {
         byte[] temp;
         synchronized (decLock) {
             stream.reset();
@@ -136,7 +140,7 @@ public abstract class CryptAeadBase implements ICrypt {
     }
 
     @Override
-    public void decrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, InvalidCipherTextException {
+    public void decrypt(byte[] data, int length, ByteArrayOutputStream stream) throws Exception {
 //        logger.debug("{} decrypt {}", this.hashCode(),Arrays.toString(data));
         byte[] d = Arrays.copyOfRange(data, 0, length);
         decrypt(d, stream);
@@ -151,9 +155,9 @@ public abstract class CryptAeadBase implements ICrypt {
     protected abstract AEADBlockCipher getCipher(boolean isEncrypted)
             throws GeneralSecurityException;
 
-    protected abstract void _encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException;
+    protected abstract void _encrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
 
-    protected abstract void _decrypt(byte[] data, ByteArrayOutputStream stream) throws InvalidCipherTextException;
+    protected abstract void _decrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
 
     protected abstract int getKeyLength();
 

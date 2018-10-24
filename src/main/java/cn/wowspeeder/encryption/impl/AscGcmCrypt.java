@@ -127,6 +127,11 @@ public class AscGcmCrypt extends CryptAeadBase {
         }
     }
 
+    /**
+     * @param data
+     * @param stream
+     * @throws InvalidCipherTextException
+     */
     @Override
     protected void _decrypt(byte[] data, ByteArrayOutputStream stream) throws InvalidCipherTextException {
 //        byte[] buffer = new byte[data.length];
@@ -134,14 +139,21 @@ public class AscGcmCrypt extends CryptAeadBase {
 //                0);
 //        logger.debug("remaining _decrypt");
 //        stream.write(buffer, 0, noBytesProcessed);
-        logger.debug("ciphertext len:{}", data.length);
+//        logger.debug("ciphertext len:{}", data.length);
         ByteBuffer buffer = ByteBuffer.wrap(data);
-//        [encrypted payload length][length tag]
-
-        logger.debug("id:{} remaining {}", hashCode(), buffer.hasRemaining());
         while (buffer.hasRemaining()) {
-            if (chunkLastReadLen == 0) {
-                buffer.get(decBuffer, 0, 2 + getTagLength());
+            logger.debug("id:{} remaining {} payloadLenRead:{} payloadRead:{}", hashCode(), buffer.hasRemaining(), payloadLenRead, payloadRead);
+            if (payloadRead == 0) {
+//                [encrypted payload length][length tag]
+                int wantLen = 2 + getTagLength() - payloadLenRead;
+                int remaining = buffer.remaining();
+                if (wantLen <= remaining) {
+                    buffer.get(decBuffer, payloadLenRead, wantLen);
+                } else {
+                    buffer.get(decBuffer, payloadLenRead, remaining);
+                    payloadLenRead += remaining;
+                    return;
+                }
                 decCipher.init(false, getCipherParameters(false));
                 decCipher.doFinal(
                         decBuffer,
@@ -149,34 +161,38 @@ public class AscGcmCrypt extends CryptAeadBase {
                 );
                 increment(decNonce);
             }
-//        logger.debug(Arrays.toString(decBuffer));
+
+
+//            [encrypted payload length][length tag]
             int size = ByteBuffer.wrap(decBuffer, 0, 2).getShort();
-            logger.debug("payload length:{},remaining:{}", size, buffer.remaining());
+            logger.debug("payload length:{},remaining:{},payloadRead:{}", size, buffer.remaining(), payloadRead);
             if (size == 0) {
                 //TODO exists?
                 return;
-            } else if (chunkLastReadLen != 0) {
-                buffer.get(decBuffer, 2 + getTagLength() + chunkLastReadLen, getTagLength() + size - chunkLastReadLen);
-                chunkLastReadLen = 0;
             } else {
-                if (buffer.remaining() < size + getTagLength()) {
-                    int remaining = buffer.remaining();
-                    buffer.get(decBuffer, 2 + getTagLength(), remaining);
-                    //[encrypted payload][payload tag] 还剩   size + getTagLength() - remaining
-                    chunkLastReadLen = remaining;
-                    return;
+                int wantLen = getTagLength() + size - payloadRead;
+                int remaining = buffer.remaining();
+                if (wantLen <= remaining) {
+                    buffer.get(decBuffer, 2 + getTagLength() + payloadRead, wantLen);
                 } else {
-                    buffer.get(decBuffer, 2 + getTagLength(), size + getTagLength());
-                    chunkLastReadLen = 0;
+                    buffer.get(decBuffer, 2 + getTagLength() + payloadRead, remaining);
+                    payloadRead += remaining;
+                    return;
                 }
             }
+
             decCipher.init(false, getCipherParameters(false));
             decCipher.doFinal(
                     decBuffer,
                     (2 + getTagLength()) + decCipher.processBytes(decBuffer, 2 + getTagLength(), size + getTagLength(), decBuffer, 2 + getTagLength())
             );
             increment(decNonce);
+
+            payloadLenRead = 0;
+            payloadRead = 0;
+
             stream.write(decBuffer, 2 + getTagLength(), size);
+//            logger.debug("cipher text decode finish");
         }
     }
 }

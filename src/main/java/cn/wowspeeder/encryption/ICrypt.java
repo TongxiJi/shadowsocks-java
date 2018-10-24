@@ -16,12 +16,12 @@ public interface ICrypt {
 
     void saltSetIgnore(boolean ignore);
 
-    void encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException;
+    void encrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
 
-    void encrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException;
+    void encrypt(byte[] data, int length, ByteArrayOutputStream stream) throws Exception;
 
-    void decrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException;
+    void decrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
 
-    void decrypt(byte[] data, int length, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException;
+    void decrypt(byte[] data, int length, ByteArrayOutputStream stream) throws Exception;
 
 }
