@@ -77,16 +77,6 @@ public class AesGcmCrypt extends CryptAeadBase {
         return 0;
     }
 
-    @Override
-    protected int getNonceLength() {
-        return 12;
-    }
-
-    @Override
-    protected int getTagLength() {
-        return 16;
-    }
-
     /**
      * TCP:[encrypted payload length][length tag][encrypted payload][payload tag]
      * UDP:[salt][encrypted payload][tag]
@@ -98,7 +88,7 @@ public class AesGcmCrypt extends CryptAeadBase {
      * @throws IOException
      */
     @Override
-    protected void _encrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException {
+    protected void _tcpEncrypt(byte[] data, ByteArrayOutputStream stream) throws GeneralSecurityException, IOException, InvalidCipherTextException {
 //        byte[] buffer = new byte[data.length];
 //        int noBytesProcessed = encCipher.processBytes(data, 0, data.length, buffer, 0);
 //        stream.write(buffer, 0, noBytesProcessed);
@@ -133,11 +123,11 @@ public class AesGcmCrypt extends CryptAeadBase {
      * @throws InvalidCipherTextException
      */
     @Override
-    protected void _decrypt(byte[] data, ByteArrayOutputStream stream) throws InvalidCipherTextException {
+    protected void _tcpDecrypt(byte[] data, ByteArrayOutputStream stream) throws InvalidCipherTextException {
 //        byte[] buffer = new byte[data.length];
 //        int noBytesProcessed = decCipher.processBytes(data, 0, data.length, buffer,
 //                0);
-//        logger.debug("remaining _decrypt");
+//        logger.debug("remaining _tcpDecrypt");
 //        stream.write(buffer, 0, noBytesProcessed);
 //        logger.debug("ciphertext len:{}", data.length);
         ByteBuffer buffer = ByteBuffer.wrap(data);
@@ -194,5 +184,31 @@ public class AesGcmCrypt extends CryptAeadBase {
             stream.write(decBuffer, 2 + getTagLength(), size);
 //            logger.debug("cipher text decode finish");
         }
+    }
+
+    @Override
+    protected void _udpEncrypt(byte[] data, ByteArrayOutputStream stream) throws Exception {
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        int remaining = buffer.remaining();
+        buffer.get(encBuffer, 0, remaining);
+        encCipher.init(true, getCipherParameters(true));
+        encCipher.doFinal(
+                encBuffer,
+                encCipher.processBytes(encBuffer, 0, remaining, encBuffer, 0)
+        );
+        stream.write(encBuffer, 0, remaining + getTagLength());
+    }
+
+    @Override
+    protected void _udpDecrypt(byte[] data, ByteArrayOutputStream stream) throws Exception {
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        int remaining = buffer.remaining();
+        buffer.get(decBuffer, 0, remaining);
+        decCipher.init(false, getCipherParameters(false));
+        decCipher.doFinal(
+                decBuffer,
+                decCipher.processBytes(decBuffer, 0, remaining, decBuffer, 0)
+        );
+        stream.write(decBuffer, 0, remaining - getTagLength());
     }
 }

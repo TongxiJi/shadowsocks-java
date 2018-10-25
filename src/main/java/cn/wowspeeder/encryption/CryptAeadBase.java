@@ -28,7 +28,7 @@ public abstract class CryptAeadBase implements ICrypt {
 
     private static byte[] info = "ss-subkey".getBytes();
 
-    private static byte[] ZERO_NONCE = null;
+    private static byte[] ZERO_NONCE = new byte[getNonceLength()];
 
 
     protected final String _name;
@@ -72,10 +72,6 @@ public abstract class CryptAeadBase implements ICrypt {
             if (encNonce == null && decNonce == null) {
                 encNonce = new byte[getNonceLength()];
                 decNonce = new byte[getNonceLength()];
-            }
-        } else {
-            if (ZERO_NONCE == null) {
-                ZERO_NONCE = new byte[getTagLength()];
             }
         }
     }
@@ -124,7 +120,11 @@ public abstract class CryptAeadBase implements ICrypt {
                 encCipher = getCipher(true);
                 _encryptSaltSet = true;
             }
-            _encrypt(data, stream);
+            if (!isForUdp) {
+                _tcpEncrypt(data, stream);
+            } else {
+                _udpEncrypt(data, stream);
+            }
         }
     }
 
@@ -152,7 +152,11 @@ public abstract class CryptAeadBase implements ICrypt {
             } else {
                 temp = data;
             }
-            _decrypt(temp, stream);
+            if (!isForUdp) {
+                _tcpDecrypt(temp, stream);
+            } else {
+                _udpDecrypt(temp, stream);
+            }
         }
     }
 
@@ -163,24 +167,34 @@ public abstract class CryptAeadBase implements ICrypt {
         decrypt(d, stream);
     }
 
-    private byte[] randomBytes(int size) {
+    private static byte[] randomBytes(int size) {
         byte[] bytes = new byte[size];
         new SecureRandom().nextBytes(bytes);
         return bytes;
     }
 
+    private static int getNonceLength() {
+        return 12;
+    }
+
+    protected static int getTagLength() {
+        return 16;
+    }
+
     protected abstract AEADBlockCipher getCipher(boolean isEncrypted)
             throws GeneralSecurityException;
 
-    protected abstract void _encrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
+    protected abstract void _tcpEncrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
 
-    protected abstract void _decrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
+    protected abstract void _tcpDecrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
+
+    protected abstract void _udpEncrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
+
+    protected abstract void _udpDecrypt(byte[] data, ByteArrayOutputStream stream) throws Exception;
 
     protected abstract int getKeyLength();
 
     protected abstract int getSaltLength();
 
-    protected abstract int getNonceLength();
 
-    protected abstract int getTagLength();
 }

@@ -2,7 +2,7 @@
 A  implementation of Shadowsocks in Java base on netty4 framework.
 
 # Features
-- [x] AEAD Ciphers support(current tcp test pass in game)
+- [x] AEAD Ciphers support
 - [x] TCP & UDP full support
 - [x] DNS proxy optimization
 
@@ -29,7 +29,6 @@ shadowsocks-netty-server.bat
 2. maven package
 
 ## TODO
-* [ ] AEAD Ciphers support udp test
 * [ ] ss-local implementation
 * [ ] ssr obfs features implementation(maybe no use,but for fun)
 * [ ] performance optimization
