@@ -1,7 +1,5 @@
 package cn.wowspeeder.ss;
 
-import cn.wowspeeder.encryption.CryptFactory;
-import cn.wowspeeder.encryption.ICrypt;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
@@ -13,28 +11,13 @@ import java.net.InetSocketAddress;
 public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
     private static InternalLogger logger = InternalLoggerFactory.getInstance(SSCheckerReceive.class);
 
-    private String method;
-    private String password;
-    private boolean isForUDP = false;
-
-    public SSCheckerReceive(String method, String password) {
-        this(method, password, false);
-    }
-
-    public SSCheckerReceive(String method, String password, boolean isForUDP) {
+    public SSCheckerReceive() {
         super(false);
-        this.method = method;
-        this.password = password;
-        this.isForUDP = isForUDP;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        ICrypt _crypt = CryptFactory.get(this.method, this.password);
-        assert _crypt != null;
-        _crypt.isForUdp(isForUDP);
-        ctx.channel().attr(SSCommon.CIPHER).set(_crypt);
     }
 
     @Override

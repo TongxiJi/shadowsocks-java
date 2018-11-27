@@ -19,7 +19,7 @@ import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
 
 public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSTcpProxyHandler.class);
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSTcpProxyHandler.class);
 
     private Channel clientChannel;
     private Channel remoteChannel;
@@ -121,6 +121,10 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
         }
 
+        if (msg.readableBytes() == 0) {
+            ReferenceCountUtil.release(msg);
+            return;
+        }
 
         if (remoteChannel == null) {
             if (clientBuffs == null) {

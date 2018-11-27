@@ -2,6 +2,8 @@ package cn.wowspeeder;
 
 import cn.wowspeeder.config.Config;
 import cn.wowspeeder.config.ConfigLoader;
+import cn.wowspeeder.encryption.CryptFactory;
+import cn.wowspeeder.encryption.ICrypt;
 import cn.wowspeeder.ss.*;
 import cn.wowspeeder.ss.obfs.ObfsFactory;
 import io.netty.bootstrap.Bootstrap;
@@ -49,8 +51,6 @@ public class SSServer {
         }
     }
 
-    int demiread = 0;
-
     private void startSingle(String server, Integer port, String password, String method, String obfs, String obfsparam) throws Exception {
         ServerBootstrap tcpBootstrap = new ServerBootstrap();
         tcpBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
@@ -64,6 +64,12 @@ public class SSServer {
                     protected void initChannel(NioSocketChannel ctx) throws Exception {
 //                            ctx.pipeline().addLast(new SSTcpHandler(config));
                         logger.debug("channel initializer");
+
+                        ICrypt _crypt = CryptFactory.get(method, password);
+                        assert _crypt != null;
+                        _crypt.isForUdp(false);
+                        ctx.attr(SSCommon.CIPHER).set(_crypt);
+
                         ctx.pipeline()
                                 //timeout
                                 .addLast("timeout", new IdleStateHandler(0, 0, SSCommon.TCP_PROXY_IDEL_TIME, TimeUnit.SECONDS) {
@@ -84,7 +90,7 @@ public class SSServer {
                         //ss
                         ctx.pipeline()
                                 //ss-in
-                                .addLast("ssCheckerReceive", new SSCheckerReceive(method, password))
+                                .addLast("ssCheckerReceive", new SSCheckerReceive())
                                 .addLast("ssCipherDecoder", new SSCipherDecoder())
                                 .addLast("ssProtocolDecoder", new SSProtocolDecoder())
                                 //ss-proxy
@@ -110,9 +116,15 @@ public class SSServer {
 
                     @Override
                     protected void initChannel(NioDatagramChannel ctx) throws Exception {
+
+                        ICrypt _crypt = CryptFactory.get(method, password);
+                        assert _crypt != null;
+                        _crypt.isForUdp(false);
+                        ctx.attr(SSCommon.CIPHER).set(_crypt);
+
                         ctx.pipeline()
                                 // in
-                                .addLast("ssCheckerReceive", new SSCheckerReceive(method, password, true))
+                                .addLast("ssCheckerReceive", new SSCheckerReceive())
                                 .addLast("ssCipherDecoder", new SSCipherDecoder())
                                 .addLast("ssProtocolDecoder", new SSProtocolDecoder())
                                 //proxy
@@ -137,6 +149,22 @@ public class SSServer {
             workerGroup.shutdownGracefully();
         }
         logger.info("Stop Server!");
+    }
+
+
+
+    public static void main(String[] args) throws InterruptedException {
+        try {
+            getInstance().start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            getInstance().stop();
+            System.exit(-1);
+        }
+
+        while (true) {
+            Thread.sleep(1000);
+        }
     }
 
 }
