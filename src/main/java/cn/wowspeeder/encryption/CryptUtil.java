@@ -24,7 +24,7 @@ public class CryptUtil {
             int len = bytebuff.readableBytes();
             byte[] arr = new byte[len];
             bytebuff.getBytes(0, arr);
-            crypt.encrypt(arr, arr.length, _remoteOutStream);
+            crypt.encrypt(arr, _remoteOutStream);
             data = _remoteOutStream.toByteArray();
         } finally {
             if (_remoteOutStream != null) {
@@ -46,10 +46,8 @@ public class CryptUtil {
             int len = bytebuff.readableBytes();
             byte[] arr = new byte[len];
             bytebuff.getBytes(0, arr);
-//            logger.debug("before:" + Arrays.toString(arr));
-            crypt.decrypt(arr, arr.length, _localOutStream);
+            crypt.decrypt(arr, _localOutStream);
             data = _localOutStream.toByteArray();
-//            logger.debug("after:" + Arrays.toString(data));
         } finally {
             if (_localOutStream != null) {
                 try {
