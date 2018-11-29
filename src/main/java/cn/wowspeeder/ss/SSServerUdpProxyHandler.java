@@ -15,12 +15,12 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
-public class SSUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSUdpProxyHandler.class);
+public class SSServerUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSServerUdpProxyHandler.class);
 
     private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
 
-    public SSUdpProxyHandler() {
+    public SSServerUdpProxyHandler() {
 
     }
 

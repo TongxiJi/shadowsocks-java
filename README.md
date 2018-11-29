@@ -6,30 +6,30 @@ A  implementation of Shadowsocks in Java base on netty4 framework.
 - [x] TCP & UDP full support
 - [x] DNS proxy optimization
 
-# environment
+# Environment
 * JRE8
 
-# install
-1. download shadowsocks-netty-server-x.x.x-bin.zip
-2. unzip shadowsocks-netty-server-x.x.x-bin.zip
+# Install
+1. download shadowsocks-netty-x.x.x-bin.zip
+2. unzip shadowsocks-netty-x.x.x-bin.zip
 3. run
+#### as ssserver
 ```
-#unix like:
-cd shadowsocks-netty-server-x.x.x
-bash shadowsocks-netty-server.sh
+java -jar shadowsocks-netty-x.x.x.jar -s
 ```
-
+#### as ssclient
 ```
-#windows:
-shadowsocks-netty-server.bat
+java -jar shadowsocks-netty-x.x.x.jar -c
 ```
 
-# build
+## Config file as python port
+[Create configuration file and run](https://github.com/shadowsocks/shadowsocks/wiki/Configuration-via-Config-File)
+
+# Build
 1. import as maven project
 2. maven package
 
 ## TODO
-* [ ] ss-local implementation
 * [ ] ssr obfs features implementation(maybe no use,but for fun)
 * [ ] performance optimization
 * [ ] rate limit

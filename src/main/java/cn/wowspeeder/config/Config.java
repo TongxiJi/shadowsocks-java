@@ -22,6 +22,12 @@ public class Config {
 	@SerializedName("obfsparam")
 	private String obfsparam;
 
+	@SerializedName("local_address")
+	private String localAddress;
+
+	@SerializedName("local_port")
+	private Integer localPort;
+
 	public String getServer() {
 		return server;
 	}
@@ -60,5 +66,21 @@ public class Config {
 
 	public void setObfsparam(String obfsparam) {
 		this.obfsparam = obfsparam;
+	}
+
+	public String getLocalAddress() {
+		return localAddress;
+	}
+
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
+	}
+
+	public Integer getLocalPort() {
+		return localPort;
+	}
+
+	public void setLocalPort(Integer localPort) {
+		this.localPort = localPort;
 	}
 }

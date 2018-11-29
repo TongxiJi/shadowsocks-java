@@ -10,6 +10,8 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -65,6 +67,8 @@ public class SSServer {
 //                            ctx.pipeline().addLast(new SSTcpHandler(config));
                         logger.debug("channel initializer");
 
+                        ctx.attr(SSCommon.IS_UDP).set(false);
+
                         ICrypt _crypt = CryptFactory.get(method, password);
                         assert _crypt != null;
                         _crypt.isForUdp(false);
@@ -89,16 +93,17 @@ public class SSServer {
                         }
                         //ss
                         ctx.pipeline()
+//                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 //ss-in
                                 .addLast("ssCheckerReceive", new SSCheckerReceive())
-                                .addLast("ssCipherDecoder", new SSCipherDecoder())
-                                .addLast("ssProtocolDecoder", new SSProtocolDecoder())
-                                //ss-proxy
-                                .addLast("ssTcpProxy", new SSTcpProxyHandler())
                                 //ss-out
                                 .addLast("ssCheckerSend", new SSCheckerSend())
-                                .addLast("ssCipherEncoder", new SSCipherEncoder())
-                                .addLast("ssProtocolEncoder", new SSProtocolEncoder())
+                                //ss-cypt
+                                .addLast("ssCipherCodec", new SSCipherCodec())
+                                //ss-protocol
+                                .addLast("ssProtocolCodec", new SSProtocolCodec())
+                                //ss-proxy
+                                .addLast("ssTcpProxy", new SSServerTcpProxyHandler())
                         ;
                     }
                 });
@@ -117,22 +122,25 @@ public class SSServer {
                     @Override
                     protected void initChannel(NioDatagramChannel ctx) throws Exception {
 
+                        ctx.attr(SSCommon.IS_UDP).set(true);
+
                         ICrypt _crypt = CryptFactory.get(method, password);
                         assert _crypt != null;
-                        _crypt.isForUdp(false);
+                        _crypt.isForUdp(true);
                         ctx.attr(SSCommon.CIPHER).set(_crypt);
 
                         ctx.pipeline()
+//                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 // in
                                 .addLast("ssCheckerReceive", new SSCheckerReceive())
-                                .addLast("ssCipherDecoder", new SSCipherDecoder())
-                                .addLast("ssProtocolDecoder", new SSProtocolDecoder())
-                                //proxy
-                                .addLast("ssUdpProxy", new SSUdpProxyHandler())
                                 // out
                                 .addLast("ssCheckerSend", new SSCheckerSend())
-                                .addLast("ssCipherEncoder", new SSCipherEncoder())
-                                .addLast("ssProtocolEncoder", new SSProtocolEncoder())
+                                //ss-cypt
+                                .addLast("ssCipherCodec", new SSCipherCodec())
+                                //ss-protocol
+                                .addLast("ssProtocolCodec", new SSProtocolCodec())
+                                //proxy
+                                .addLast("ssUdpProxy", new SSServerUdpProxyHandler())
                         ;
                     }
                 })
@@ -152,7 +160,6 @@ public class SSServer {
     }
 
 
-
     public static void main(String[] args) throws InterruptedException {
         try {
             getInstance().start();
@@ -160,10 +167,6 @@ public class SSServer {
             e.printStackTrace();
             getInstance().stop();
             System.exit(-1);
-        }
-
-        while (true) {
-            Thread.sleep(1000);
         }
     }
 

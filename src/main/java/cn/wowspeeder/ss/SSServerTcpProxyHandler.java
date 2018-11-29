@@ -3,7 +3,6 @@ package cn.wowspeeder.ss;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -18,36 +17,36 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
 
-public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSTcpProxyHandler.class);
+public class SSServerTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSServerTcpProxyHandler.class);
 
     private Channel clientChannel;
     private Channel remoteChannel;
     private Bootstrap proxyClient;
     private List<ByteBuf> clientBuffs;
 
-    public SSTcpProxyHandler() {
+    public SSServerTcpProxyHandler() {
     }
 
 
     @Override
     protected void channelRead0(ChannelHandlerContext clientCtx, ByteBuf msg) throws Exception {
-        logger.debug("channel id {},readableBytes:{}", clientCtx.channel().id().toString(), msg.readableBytes());
         if (this.clientChannel == null) {
             this.clientChannel = clientCtx.channel();
         }
+        logger.debug("channel id {},readableBytes:{}", clientChannel.id().toString(), msg.readableBytes());
 //        if (msg.readableBytes() == 0) return;
         proxy(clientCtx, msg);
     }
 
     private void proxy(ChannelHandlerContext clientCtx, ByteBuf msg) {
-        logger.debug("channel id {},pc is null {},{}", clientCtx.channel().id().toString(), (remoteChannel == null), msg.readableBytes());
+        logger.debug("channel id {},pc is null {},{}", clientChannel.id().toString(), (remoteChannel == null), msg.readableBytes());
         if (remoteChannel == null && proxyClient == null) {
             proxyClient = new Bootstrap();//
 
-            InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
+            InetSocketAddress clientRecipient = clientChannel.attr(SSCommon.REMOTE_DES).get();
 
-            proxyClient.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
+            proxyClient.group(clientChannel.eventLoop()).channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 60 * 1000)
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
@@ -68,7 +67,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                             .addLast("tcpProxy", new SimpleChannelInboundHandler<ByteBuf>() {
                                                 @Override
                                                 protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-                                                    clientCtx.channel().writeAndFlush(msg.retain());
+                                                    clientChannel.writeAndFlush(msg.retain());
                                                 }
 
                                                 @Override
@@ -97,7 +96,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         .addListener((ChannelFutureListener) future -> {
                             try {
                                 if (future.isSuccess()) {
-                                    logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
+                                    logger.debug("channel id {}, {}<->{}<->{} connect  {}", clientChannel.id().toString(), clientChannel.remoteAddress().toString(), future.channel().localAddress().toString(), clientRecipient.toString(), future.isSuccess());
                                     remoteChannel = future.channel();
                                     if (clientBuffs != null) {
                                         ListIterator<ByteBuf> bufsIterator = clientBuffs.listIterator();
@@ -107,7 +106,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                         clientBuffs = null;
                                     }
                                 } else {
-                                    logger.error("channel id {}, {}<->{} connect {},cause {}", clientCtx.channel().id().toString(), clientCtx.channel().remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
+                                    logger.error("channel id {}, {}<->{} connect {},cause {}", clientChannel.id().toString(), clientChannel.remoteAddress().toString(), clientRecipient.toString(), future.isSuccess(), future.cause());
                                     proxyChannelClose();
                                 }
                             } catch (Exception e) {
@@ -121,24 +120,19 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
         }
 
-        if (msg.readableBytes() == 0) {
-            ReferenceCountUtil.release(msg);
-            return;
-        }
-
         if (remoteChannel == null) {
             if (clientBuffs == null) {
                 clientBuffs = new ArrayList<>();
             }
             clientBuffs.add(msg.retain());
-            logger.debug("channel id {},add to client buff list", clientCtx.channel().id().toString());
+            logger.debug("channel id {},add to client buff list", clientChannel.id().toString());
         } else {
             if (clientBuffs == null) {
                 remoteChannel.writeAndFlush(msg.retain());
             } else {
                 clientBuffs.add(msg.retain());
             }
-            logger.debug("channel id {},remote channel write {}", clientCtx.channel().id().toString(), msg.readableBytes());
+            logger.debug("channel id {},remote channel write {}", clientChannel.id().toString(), msg.readableBytes());
         }
     }
 
@@ -151,7 +145,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-//        super.exceptionCaught(ctx,cause);
+        super.exceptionCaught(ctx,cause);
         proxyChannelClose();
     }
 

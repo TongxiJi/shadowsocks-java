@@ -4,15 +4,14 @@ import cn.wowspeeder.encryption.CryptUtil;
 import cn.wowspeeder.encryption.ICrypt;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
-import java.nio.charset.Charset;
 import java.util.List;
 
-public class SSCipherEncoder extends MessageToMessageEncoder<ByteBuf> {
-    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSCipherEncoder.class);
+public class SSCipherCodec extends MessageToMessageCodec<ByteBuf, ByteBuf> {
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSCipherCodec.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
@@ -25,5 +24,19 @@ public class SSCipherEncoder extends MessageToMessageEncoder<ByteBuf> {
         }
 //        logger.debug("encode after encryptedData size:{}",encryptedData.length);
         out.add(msg.retain().clear().writeBytes(encryptedData));
+        logger.debug("encode done:");
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        logger.debug("decode msg size:" + msg.readableBytes());
+        ICrypt _crypt = ctx.channel().attr(SSCommon.CIPHER).get();
+        byte[] data = CryptUtil.decrypt(_crypt, msg);
+        if (data == null || data.length == 0) {
+            return;
+        }
+        logger.debug((ctx.channel().attr(SSCommon.IS_UDP).get() ? "(UDP)" : "(TCP)") + " decode after:" + data.length);
+//        logger.debug("channel id:{}  decode text:{}", ctx.channel().id(), new String(data, Charset.forName("gbk")));
+        out.add(msg.retain().clear().writeBytes(data));//
     }
 }

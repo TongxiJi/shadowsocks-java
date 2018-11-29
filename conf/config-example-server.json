@@ -4,7 +4,5 @@
     "443": "889900"
   },
   "method": "aes-256-cfb",
-  "obfs": "origin",
-  "local_address": "127.0.0.1",
-  "local_port": 1080
+  "obfs": "origin"
 }

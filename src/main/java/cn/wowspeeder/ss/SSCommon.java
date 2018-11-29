@@ -1,5 +1,6 @@
 package cn.wowspeeder.ss;
 
+import io.netty.handler.codec.socksx.v5.Socks5CommandRequest;
 import io.netty.util.AttributeKey;
 import cn.wowspeeder.encryption.ICrypt;
 
@@ -12,6 +13,7 @@ public class SSCommon {
     public static final AttributeKey<InetSocketAddress> CLIENT = AttributeKey.valueOf("ssclient");
     public static final AttributeKey<InetSocketAddress> REMOTE_DES = AttributeKey.valueOf("ssremotedes");
     public static final AttributeKey<InetSocketAddress> REMOTE_SRC = AttributeKey.valueOf("ssremotesrc");
+    public static final AttributeKey<Socks5CommandRequest> REMOTE_DES_SOCKS5 = AttributeKey.valueOf("socks5remotedes");
 
 
     public static final int TCP_PROXY_IDEL_TIME = 120;
