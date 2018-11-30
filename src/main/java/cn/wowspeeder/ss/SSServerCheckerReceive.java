@@ -8,10 +8,10 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.net.InetSocketAddress;
 
-public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
-    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSCheckerReceive.class);
+public class SSServerCheckerReceive extends SimpleChannelInboundHandler<Object> {
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSServerCheckerReceive.class);
 
-    public SSCheckerReceive() {
+    public SSServerCheckerReceive() {
         super(false);
     }
 
@@ -29,11 +29,10 @@ public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
             if (udpRaw.content().readableBytes() < 4) { //no cipher, min size = 1 + 1 + 2 ,[1-byte type][variable-length host][2-byte port]
                 return;
             }
-            ctx.channel().attr(SSCommon.CLIENT).set(udpRaw.sender());
+            ctx.channel().attr(SSCommon.RemoteAddr).set(udpRaw.sender());
             ctx.fireChannelRead(udpRaw.content());
         } else {
-            ctx.channel().attr(SSCommon.CLIENT).set((InetSocketAddress) ctx.channel().remoteAddress());
-            ctx.channel().attr(SSCommon.IS_FIRST_TCP_PACK).set(true);
+            ctx.channel().attr(SSCommon.RemoteAddr).set((InetSocketAddress) ctx.channel().remoteAddress());
             ctx.channel().pipeline().remove(this);
             ctx.fireChannelRead(msg);
         }

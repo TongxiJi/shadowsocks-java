@@ -95,9 +95,9 @@ public class SSServer {
                         ctx.pipeline()
 //                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 //ss-in
-                                .addLast("ssCheckerReceive", new SSCheckerReceive())
+                                .addLast("ssCheckerReceive", new SSServerCheckerReceive())
                                 //ss-out
-                                .addLast("ssCheckerSend", new SSCheckerSend())
+                                .addLast("ssCheckerSend", new SSServerCheckerSend())
                                 //ss-cypt
                                 .addLast("ssCipherCodec", new SSCipherCodec())
                                 //ss-protocol
@@ -130,11 +130,11 @@ public class SSServer {
                         ctx.attr(SSCommon.CIPHER).set(_crypt);
 
                         ctx.pipeline()
-//                                .addLast(new LoggingHandler(LogLevel.INFO))
+                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 // in
-                                .addLast("ssCheckerReceive", new SSCheckerReceive())
+                                .addLast("ssCheckerReceive", new SSServerCheckerReceive())
                                 // out
-                                .addLast("ssCheckerSend", new SSCheckerSend())
+                                .addLast("ssCheckerSend", new SSServerCheckerSend())
                                 //ss-cypt
                                 .addLast("ssCipherCodec", new SSCipherCodec())
                                 //ss-protocol

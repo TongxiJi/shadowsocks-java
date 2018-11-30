@@ -7,11 +7,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.socksx.SocksMessage;
 import io.netty.handler.codec.socksx.v5.*;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
-import java.net.InetSocketAddress;
+import java.net.*;
 
 @ChannelHandler.Sharable
 public final class SocksServerHandler extends SimpleChannelInboundHandler<SocksMessage> {
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SocksServerHandler.class);
 
     public static final SocksServerHandler INSTANCE = new SocksServerHandler();
 
@@ -36,13 +39,34 @@ public final class SocksServerHandler extends SimpleChannelInboundHandler<SocksM
                         //ss-local just res SUCCESS
                         ctx.channel().writeAndFlush(new DefaultSocks5CommandResponse(
                                 Socks5CommandStatus.SUCCESS,
-                                socks5CmdRequest.dstAddrType(),
-                                socks5CmdRequest.dstAddr(),
-                                socks5CmdRequest.dstPort()));
+                                Socks5AddressType.IPv4,
+                                "0.0.0.0",
+                                0));
 
                         ctx.channel().attr(SSCommon.REMOTE_DES_SOCKS5).set(socks5CmdRequest);
 
 //                        ctx.fireChannelRead(socksRequest);
+                    } else if (socks5CmdRequest.type() == Socks5CommandType.UDP_ASSOCIATE) {
+                        ctx.pipeline().remove(this);
+
+                        InetSocketAddress bindAddr = (InetSocketAddress) ctx.channel().localAddress();
+                        InetAddress bindId = bindAddr.getAddress();
+                        Socks5AddressType bindAddrType = Socks5AddressType.IPv4;
+                        if (bindId instanceof Inet4Address) {
+                            bindAddrType = Socks5AddressType.IPv4;
+                        } else if (bindId instanceof Inet6Address) {
+                            bindAddrType = Socks5AddressType.IPv6;
+                        }
+
+                        logger.info(bindAddr.toString());
+
+                        ctx.channel().writeAndFlush(new DefaultSocks5CommandResponse(
+                                Socks5CommandStatus.SUCCESS,
+                                bindAddrType,
+                                bindId.getHostAddress(),
+                                bindAddr.getPort()));
+//                        Thread.sleep(100000);
+//                       ctx.fireChannelRead(socksRequest);
                     } else {
                         ctx.close();
                     }

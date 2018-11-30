@@ -6,6 +6,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -27,7 +29,7 @@ public class SSServerUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf
     @Override
     protected void channelRead0(ChannelHandlerContext clientCtx, ByteBuf msg) throws Exception {
 //        logger.debug("readableBytes:" + msg.readableBytes());
-        InetSocketAddress clientSender = clientCtx.channel().attr(SSCommon.CLIENT).get();
+        InetSocketAddress clientSender = clientCtx.channel().attr(SSCommon.RemoteAddr).get();
         InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
         proxy(clientSender, clientRecipient, clientCtx, msg.retain());
     }
@@ -55,6 +57,7 @@ public class SSServerUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf
                                             return super.newIdleStateEvent(state, first);
                                         }
                                     })
+                                    .addLast(new LoggingHandler(LogLevel.INFO))
                                     .addLast("udpProxy", new SimpleChannelInboundHandler<DatagramPacket>() {
                                         @Override
                                         protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {

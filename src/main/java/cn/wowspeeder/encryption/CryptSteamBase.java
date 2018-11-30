@@ -7,10 +7,11 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
 
 import javax.crypto.SecretKey;
 
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -32,7 +33,7 @@ public abstract class CryptSteamBase implements ICrypt {
 	protected final Lock decLock = new ReentrantLock();
 	protected StreamCipher encCipher;
 	protected StreamCipher decCipher;
-	private Logger logger = Logger.getLogger(CryptSteamBase.class.getName());
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(CryptSteamBase.class);
 
 	public CryptSteamBase(String name, String password) {
 		_name = name.toLowerCase();

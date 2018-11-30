@@ -39,7 +39,7 @@ public class SSLocalTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf>
 
     public SSLocalTcpProxyHandler(String server, Integer port, String method, String password, String obfs, String obfsparam) {
         crypt = CryptFactory.get(method, password);
-        ssServer = InetSocketAddress.createUnresolved(server, port);
+        ssServer = new InetSocketAddress(server, port);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class SSLocalTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf>
                                     ch.pipeline()
 //                                            .addLast(new LoggingHandler(LogLevel.INFO))
                                             .addLast("ssCipherCodec", new SSCipherCodec())
-                                            .addLast("ssProtocolCodec", new SSProtocolCodec())
+                                            .addLast("ssProtocolCodec", new SSProtocolCodec(true))
                                             .addLast("relay", new SimpleChannelInboundHandler<ByteBuf>() {
                                                 @Override
                                                 protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {

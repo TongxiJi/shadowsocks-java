@@ -2,10 +2,7 @@ package cn.wowspeeder.encryption;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Arrays;
 
-import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

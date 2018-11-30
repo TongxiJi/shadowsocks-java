@@ -2,28 +2,18 @@ package cn.wowspeeder;
 
 import cn.wowspeeder.config.Config;
 import cn.wowspeeder.config.ConfigLoader;
-import cn.wowspeeder.encryption.CryptAeadBase;
-import cn.wowspeeder.encryption.CryptFactory;
-import cn.wowspeeder.encryption.ICrypt;
 import cn.wowspeeder.socks5.SocksServerHandler;
-import cn.wowspeeder.socks5.SocksServerInitializer;
 import cn.wowspeeder.ss.*;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.channel.unix.ServerDomainSocketChannel;
-import io.netty.handler.codec.socks.SocksInitRequestDecoder;
-import io.netty.handler.codec.socks.SocksMessageEncoder;
 import io.netty.handler.codec.socksx.SocksPortUnificationServerHandler;
-import io.netty.handler.codec.socksx.v5.DefaultSocks5InitialResponse;
-import io.netty.handler.codec.socksx.v5.Socks5AuthMethod;
-import io.netty.handler.codec.socksx.v5.Socks5CommandRequestDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleState;
@@ -32,14 +22,11 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class SSLocal {
-    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSServer.class);
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(SSLocal.class);
 
     private static final String CONFIG = "conf/config.json";
 
@@ -73,6 +60,8 @@ public class SSLocal {
 
     private void startSingle(String socks5Server, Integer socks5Port, String server, Integer port, String password, String method, String obfs, String obfsparam) throws Exception {
         ServerBootstrap tcpBootstrap = new ServerBootstrap();
+
+        //local socks5  server ,tcp
         tcpBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
@@ -102,6 +91,26 @@ public class SSLocal {
 
 //            logger.info("TCP Start At Port " + config.get_localPort());
         tcpBootstrap.bind(socks5Server, socks5Port).sync();
+
+        //local socks5  server ,udp
+        Bootstrap udpBootstrap = new Bootstrap();
+        udpBootstrap.group(bossGroup).channel(NioDatagramChannel.class)
+                .option(ChannelOption.SO_BROADCAST, false)// 支持广播
+                .option(ChannelOption.SO_RCVBUF, 64 * 1024)// 设置UDP读缓冲区为64k
+                .option(ChannelOption.SO_SNDBUF, 64 * 1024)// 设置UDP写缓冲区为64k
+                .handler(new ChannelInitializer<NioDatagramChannel>() {
+
+                    @Override
+                    protected void initChannel(NioDatagramChannel ctx) throws Exception {
+                        ctx.pipeline()
+                                .addLast(new LoggingHandler(LogLevel.INFO))
+                                .addLast(new SSLocalUdpProxyHandler(server, port, method, password, obfs, obfsparam))
+                        ;
+                    }
+                })
+        ;
+        udpBootstrap.bind(socks5Server, socks5Port).sync();
+
         logger.info("listen at {}:{}", socks5Server, socks5Port);
     }
 
