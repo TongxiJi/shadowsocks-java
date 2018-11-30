@@ -38,11 +38,12 @@ public class SSLocalUdpProxyHandler extends SimpleChannelInboundHandler<Datagram
         InetSocketAddress clientSender = msg.sender();
 
         msg.content().skipBytes(3);//skip [5, 0, 0]
-
-        proxy(clientSender, msg.content().retain());
+        SSAddrRequest addrRequest = SSAddrRequest.getAddrRequest(msg.content());
+        InetSocketAddress clientRecipient = new InetSocketAddress(addrRequest.host(), addrRequest.port());
+        proxy(clientSender, msg.content(),clientRecipient);
     }
 
-    private void proxy(InetSocketAddress clientSender, ByteBuf msg) throws InterruptedException {
+    private void proxy(InetSocketAddress clientSender, ByteBuf msg,InetSocketAddress clientRecipient) throws InterruptedException {
         Channel pc = NatMapper.getUdpChannel(clientSender);
         if (pc == null) {
             Bootstrap bootstrap = new Bootstrap();
@@ -65,14 +66,12 @@ public class SSLocalUdpProxyHandler extends SimpleChannelInboundHandler<Datagram
                                         protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
 //                                          logger.debug("rc received message ");
                                             ByteBuf content = Unpooled.wrappedBuffer(Unpooled.wrappedBuffer(SOCKS5_ADDRESS_PREFIX), msg.content().retain());
-
                                             ctx.channel().writeAndFlush(new DatagramPacket(content, clientSender)).addListener(new GenericFutureListener<Future<? super Void>>() {
                                                 @Override
                                                 public void operationComplete(Future<? super Void> future) throws Exception {
                                                     logger.debug("operationComplete {} {}", future.isSuccess(), future.cause());
                                                 }
                                             });
-
                                         }
                                     })
                             ;
@@ -98,7 +97,13 @@ public class SSLocalUdpProxyHandler extends SimpleChannelInboundHandler<Datagram
         }
 
         if (pc != null) {
-            pc.writeAndFlush(new DatagramPacket(msg.retain(), ssServer));
+            pc.attr(SSCommon.REMOTE_DES).set(clientRecipient);
+            pc.writeAndFlush(new DatagramPacket(msg.retain(), ssServer)).addListener(new GenericFutureListener<Future<? super Void>>() {
+                @Override
+                public void operationComplete(Future<? super Void> future) throws Exception {
+                    logger.debug("operationComplete {} {}",future.isSuccess(),future.cause());
+                }
+            });
         }
     }
 
