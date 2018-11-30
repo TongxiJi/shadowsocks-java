@@ -57,7 +57,7 @@ public class SSServerUdpProxyHandler extends SimpleChannelInboundHandler<ByteBuf
                                             return super.newIdleStateEvent(state, first);
                                         }
                                     })
-                                    .addLast(new LoggingHandler(LogLevel.INFO))
+//                                    .addLast(new LoggingHandler(LogLevel.INFO))
                                     .addLast("udpProxy", new SimpleChannelInboundHandler<DatagramPacket>() {
                                         @Override
                                         protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {

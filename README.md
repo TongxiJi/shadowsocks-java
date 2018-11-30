@@ -15,11 +15,11 @@ A  implementation of Shadowsocks in Java base on netty4 framework.
 3. run
 #### as ssserver
 ```
-java -jar shadowsocks-netty-x.x.x.jar -s
+java -jar shadowsocks-netty-x.x.x.jar -s -conf="conf/config-example-server.json"
 ```
 #### as ssclient
 ```
-java -jar shadowsocks-netty-x.x.x.jar -c
+java -jar shadowsocks-netty-x.x.x.jar -c --conf="conf/config-example-client.json"
 ```
 
 ## Config file as python port

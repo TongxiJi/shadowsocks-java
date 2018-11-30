@@ -58,14 +58,12 @@ public final class SocksServerHandler extends SimpleChannelInboundHandler<SocksM
                             bindAddrType = Socks5AddressType.IPv6;
                         }
 
-                        logger.info(bindAddr.toString());
-
                         ctx.channel().writeAndFlush(new DefaultSocks5CommandResponse(
                                 Socks5CommandStatus.SUCCESS,
                                 bindAddrType,
                                 bindId.getHostAddress(),
                                 bindAddr.getPort()));
-//                        Thread.sleep(100000);
+
 //                       ctx.fireChannelRead(socksRequest);
                     } else {
                         ctx.close();

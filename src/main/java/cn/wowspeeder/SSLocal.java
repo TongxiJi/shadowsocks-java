@@ -6,16 +6,12 @@ import cn.wowspeeder.socks5.SocksServerHandler;
 import cn.wowspeeder.ss.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.socksx.SocksPortUnificationServerHandler;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -28,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 public class SSLocal {
     private static InternalLogger logger = InternalLoggerFactory.getInstance(SSLocal.class);
 
-    private static final String CONFIG = "conf/config.json";
 
     private static EventLoopGroup bossGroup = new NioEventLoopGroup();
     private static EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -43,8 +38,8 @@ public class SSLocal {
 
     }
 
-    public void start() throws Exception {
-        final Config config = ConfigLoader.load(CONFIG);
+    public void start(String configPath) throws Exception {
+        final Config config = ConfigLoader.load(configPath);
         logger.info("load config !");
 
         for (Map.Entry<Integer, String> portPassword : config.getPortPassword().entrySet()) {
@@ -103,7 +98,7 @@ public class SSLocal {
                     @Override
                     protected void initChannel(NioDatagramChannel ctx) throws Exception {
                         ctx.pipeline()
-                                .addLast(new LoggingHandler(LogLevel.INFO))
+//                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 .addLast(new SSLocalUdpProxyHandler(server, port, method, password, obfs, obfsparam))
                         ;
                     }
@@ -126,7 +121,7 @@ public class SSLocal {
 
     public static void main(String[] args) throws Exception {
         try {
-            getInstance().start();
+            getInstance().start("conf/config-example-client.json");
         } catch (Exception e) {
             e.printStackTrace();
             getInstance().stop();

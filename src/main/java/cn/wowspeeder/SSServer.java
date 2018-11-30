@@ -10,8 +10,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -29,8 +27,6 @@ import java.util.concurrent.TimeUnit;
 public class SSServer {
     private static InternalLogger logger = InternalLoggerFactory.getInstance(SSServer.class);
 
-    private static final String CONFIG = "conf/config.json";
-
     private static EventLoopGroup bossGroup = new NioEventLoopGroup();
     private static EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -44,8 +40,8 @@ public class SSServer {
 
     }
 
-    public void start() throws Exception {
-        final Config config = ConfigLoader.load(CONFIG);
+    public void start(String configPath) throws Exception {
+        final Config config = ConfigLoader.load(configPath);
         logger.info("load config !");
 
         for (Map.Entry<Integer, String> portPassword : config.getPortPassword().entrySet()) {
@@ -130,7 +126,7 @@ public class SSServer {
                         ctx.attr(SSCommon.CIPHER).set(_crypt);
 
                         ctx.pipeline()
-                                .addLast(new LoggingHandler(LogLevel.INFO))
+//                                .addLast(new LoggingHandler(LogLevel.INFO))
                                 // in
                                 .addLast("ssCheckerReceive", new SSServerCheckerReceive())
                                 // out
@@ -162,7 +158,7 @@ public class SSServer {
 
     public static void main(String[] args) throws InterruptedException {
         try {
-            getInstance().start();
+            getInstance().start("conf/config-example-server.json");
         } catch (Exception e) {
             e.printStackTrace();
             getInstance().stop();
