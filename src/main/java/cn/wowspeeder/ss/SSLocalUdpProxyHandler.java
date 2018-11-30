@@ -24,7 +24,7 @@ import java.net.InetSocketAddress;
 public class SSLocalUdpProxyHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static InternalLogger logger = InternalLoggerFactory.getInstance(SSLocalUdpProxyHandler.class);
 
-    private static byte[] SOCKS5_ADDRESS_PREFIX = new byte[]{5, 0, 0};
+    private static byte[] SOCKS5_ADDRESS_PREFIX = new byte[]{0, 0, 0};
 
     private static EventLoopGroup proxyBossGroup = new NioEventLoopGroup();
     private final ICrypt crypt;
