@@ -40,7 +40,7 @@ public class HttpSimpleHandler extends SimpleChannelInboundHandler<HttpRequest> 
             ctx.channel().close();
             return;
         }
-        logger.info(msg.uri());
+        logger.debug(msg.uri());
         String[] hexItems = msg.uri().split("%");
         StringBuilder hexStr = new StringBuilder();
         if (hexItems.length > 1) {
