@@ -40,9 +40,20 @@ public class HttpSimpleHandler extends SimpleChannelInboundHandler<HttpRequest> 
             ctx.channel().close();
             return;
         }
-        logger.debug(msg.toString());
-        String strHexData = msg.uri().replace("%", "").replace("/", "");
-        ByteBuf encodeData = Unpooled.wrappedBuffer(Hex.decode(strHexData));
+        logger.info(msg.uri());
+        String[] hexItems = msg.uri().split("%");
+        StringBuilder hexStr = new StringBuilder();
+        if (hexItems.length > 1) {
+            for (int i = 1; i < hexItems.length; i++) {
+                if (hexItems[i].length() == 2) {
+                    hexStr.append(hexItems[i]);
+                } else {
+                    hexStr.append(hexItems[i], 0, 2);
+                    break;
+                }
+            }
+        }
+        ByteBuf encodeData = Unpooled.wrappedBuffer(Hex.decode(hexStr.toString()));
         ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));
         ctx.fireChannelRead(encodeData);
         ctx.pipeline().remove(HttpServerCodec.class);
