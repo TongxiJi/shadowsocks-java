@@ -47,7 +47,7 @@ public abstract class CryptAeadBase implements ICrypt {
     protected byte[] decNonce;
 
     protected byte[] encBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
-    protected byte[] decBuffer = new byte[PAYLOAD_SIZE_MASK + getTagLength()];
+    protected byte[] decBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
 
     /**
      * last chunk payload len already read size
